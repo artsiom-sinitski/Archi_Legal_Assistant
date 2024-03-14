@@ -30,7 +30,6 @@ with st.sidebar:
 st.image("assets/img/man-judge.png")
 st.title(f"💬 Archi is at Your service!")
 
-# test commit
 # import pandas as pd
 # df = pd.DataFrame({
 #   'first column': [1, 2, 3, 4],
