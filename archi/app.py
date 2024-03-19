@@ -27,8 +27,27 @@ with st.sidebar:
     # "[View the source code](https://github.com/streamlit/llm-examples/blob/main/Chatbot.py)"
     "[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/streamlit/llm-examples?quickstart=1)"
 
-st.image("assets/img/man-judge.png")
-st.title(f"💬 Archi is at Your service!")
+header_row = st.columns(2)
+# ------------------------
+tile1 = header_row[0].container(height=None, border=False)
+tile1.image("assets/img/female_attorney.jpeg", width=260)
+# ------------------------
+tile2 = header_row[1].container(height=None, border=False)
+tile2.write("💬 Archie is at Your service! She would be able to:")
+tile2.divider()
+tile2.markdown("* answer your legal questions")
+tile2.markdown("* provide You with document templates")
+tile2.markdown("* give step-by-step instructions for Your case")
+
+st.divider()
+
+# for col in header_row:
+#     tile = col.container(height=250)
+#     tile.image("assets/img/man-judge.png")
+
+# with st.container():
+#     st.image("assets/img/man-judge.png")
+#     st.title("💬 Archi is at Your service!")
 
 # import pandas as pd
 # df = pd.DataFrame({
@@ -43,8 +62,6 @@ st.title(f"💬 Archi is at Your service!")
 # st.write_stream(['Hello!', "I", "am", "Artsiom"])
 # st.download_button("Download_file", data, file_name="secrets.toml")
 # st.info(f"Info -> {st.secrets.api_credentials.api_key}")
-
-st.divider()
 
 if "messages" not in st.session_state:
     st.session_state["messages"] = [{"role": "assistant", "content": "How may I help you?"}]
