@@ -80,7 +80,7 @@ if prompt := st.chat_input():
         logging.info(str(err))
 
     if not openai_api_key:
-        st.info("Please, enter your OpenAI API key to continue...")
+        st.info("Your API key is missing or invalid!")
         st.stop()
 
     client = OpenAI(api_key=openai_api_key)
