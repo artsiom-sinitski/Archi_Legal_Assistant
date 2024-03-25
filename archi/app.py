@@ -1,6 +1,5 @@
 from openai import OpenAI
 import streamlit as st
-
 import logging
 
 
@@ -27,44 +26,27 @@ with st.sidebar:
     # "[View the source code](https://github.com/streamlit/llm-examples/blob/main/Chatbot.py)"
     "[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/streamlit/llm-examples?quickstart=1)"
 
-header_row = st.columns(2)
+header = st.columns(2)
 # ------------------------
-tile1 = header_row[0].container(height=None, border=False)
-tile1.image("assets/img/female_attorney.jpeg", width=260)
+header_tile0 = header[0].container(height=None, border=False)
+header_tile0.image("content/img/female_attorney.jpeg", width=260)
 # ------------------------
-tile2 = header_row[1].container(height=None, border=False)
-tile2.write("💬 Archie is at Your service! She would be able to:")
-tile2.divider()
-tile2.markdown("* answer your legal questions")
-tile2.markdown("* provide You with document templates")
-tile2.markdown("* give step-by-step instructions for Your case")
+header_tile1 = header[1].container(height=None, border=False)
+
+header_tile1.write("💬 Арчия к Вашим услугам! Она поможет:")
+# header_tile1.write("💬 Archie is at Your service! She would be able to:")
+header_tile1.divider()
+header_tile1.markdown("* ответить на Ваши вопросы")
+# header_tile1.markdown("* answer your legal questions")
+header_tile1.markdown("* предоставить нужные бланки")
+# header_tile1.markdown("* provide You with document templates")
+header_tile1.markdown("* дать понятные пошаговые инструкции")
+# header_tile1.markdown("* give step-by-step instructions for Your case")
 
 st.divider()
 
-# for col in header_row:
-#     tile = col.container(height=250)
-#     tile.image("assets/img/man-judge.png")
-
-# with st.container():
-#     st.image("assets/img/man-judge.png")
-#     st.title("💬 Archi is at Your service!")
-
-# import pandas as pd
-# df = pd.DataFrame({
-#   'first column': [1, 2, 3, 4],
-#   'second column': [10, 20, 30, 40]
-# })
-#
-# df
-
-# st.markdown("![Archi Portrait](assets/img/man-judge.png 'Archi Portrait')")
-# st.write("Test!")
-# st.write_stream(['Hello!', "I", "am", "Artsiom"])
-# st.download_button("Download_file", data, file_name="secrets.toml")
-# st.info(f"Info -> {st.secrets.api_credentials.api_key}")
-
 if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "assistant", "content": "How may I help you?"}]
+    st.session_state["messages"] = [{"role": "assistant", "content": "Чем я могу Вам помочь?"}]
 
 for msg in st.session_state.messages:
     st.chat_message(msg["role"]).write(msg["content"])
@@ -86,7 +68,7 @@ if prompt := st.chat_input():
     client = OpenAI(api_key=openai_api_key)
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.chat_message("user").write(prompt)
-    response = client.chat.completions.create(model="gpt-3.5-turbo", messages=st.session_state.messages)
+    response = client.chat.completions.create(model="gpt-3.5-turbo-0125", messages=st.session_state.messages)
     msg = response.choices[0].message.content
     st.session_state.messages.append({"role": "assistant", "content": msg})
     st.chat_message("assistant").write(msg)
