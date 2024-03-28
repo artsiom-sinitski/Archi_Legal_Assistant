@@ -29,7 +29,7 @@ with st.sidebar:
 header = st.columns(2)
 # ------------------------
 header_tile0 = header[0].container(height=None, border=False)
-header_tile0.image("content/img/female_attorney.jpeg", width=260)
+header_tile0.image("content/img/attorney2.jpg", width=260)
 # ------------------------
 header_tile1 = header[1].container(height=None, border=False)
 
