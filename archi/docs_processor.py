@@ -1,17 +1,13 @@
-# import openai
-from langchain_community.vectorstores import Chroma
+import streamlit as st
 
-# from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_openai import (
     OpenAI, OpenAIEmbeddings
 )
-
+from langchain_community.vectorstores import Chroma
 # from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import (
     PyPDFLoader, DirectoryLoader
 )
-import streamlit as st
-from langchain_community.llms import OpenAI
 from langchain.chains import RetrievalQA
 
 
@@ -22,8 +18,8 @@ file_name = "RussianConsumerLaws.pdf"
 
 # print(f"{dir_path}/{file_name}")
 
-# load and process pdf files
 # loader = PyPDFLoader(f"{dir_path}/{file_name}")
+
 loader = DirectoryLoader('./content/docs', glob="./*.pdf", loader_cls=PyPDFLoader)
 pages = loader.load_and_split()
 print(f"{'*'*3} Loaded and split the documents")
@@ -37,25 +33,18 @@ print(f"{'*'*3} Loaded and split the documents")
 # print(type(pages))
 # print(pages[0].metadata["source"])
 
-# Embed and store the pages
-# Supplying a persist_directory will store the embeddings on disk
 persist_directory = 'db'
+embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
 
-# here we are using OpenAI embeddings but in future we will swap out to local embeddings
-embedding = OpenAIEmbeddings(openai_api_key=openai_api_key)
-
-vector_db = Chroma.from_documents(
-    documents=pages,
-    embedding=embedding,
-    persist_directory=persist_directory
-)
-
-vector_db.persist()
-vector_db = None
-
-# load the persisted database from disk, and use it as normal.
-vector_db = Chroma(persist_directory=persist_directory,
-                   embedding_function=embedding)
+if not (vector_db := Chroma(persist_directory=persist_directory, embedding_function=embeddings)):
+    # Embed and store the pages on disk
+    # using OpenAI embeddings for now but in future we will use local embeddings
+    vector_db = Chroma.from_documents(
+        documents=pages,
+        embedding=embeddings,
+        persist_directory=persist_directory
+    )
+    vector_db.persist()
 print(f"{'*'*3} Loaded data into vector db")
 
 retriever = vector_db.as_retriever()
@@ -82,7 +71,6 @@ def process_llm_response(llm_response):
         print(source.metadata['source'])
 
 
-# query = "How much money did Pando raise?"
 llm_response = qa_chain(question)
 process_llm_response(llm_response)
 
