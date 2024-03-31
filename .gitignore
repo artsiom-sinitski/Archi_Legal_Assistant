@@ -1,3 +1,5 @@
 .idea/
 archi/.streamlit/secrets.toml
+archi/knowledge_db/
+archi/knowledge_db/*
 *.docx

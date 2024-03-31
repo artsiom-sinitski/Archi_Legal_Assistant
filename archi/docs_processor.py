@@ -1,7 +1,8 @@
-import streamlit as st
+import os
+from pprint import pprint
 
 from langchain_openai import (
-    OpenAI, OpenAIEmbeddings
+    ChatOpenAI, OpenAIEmbeddings
 )
 from langchain_community.vectorstores import Chroma
 # from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -9,20 +10,24 @@ from langchain_community.document_loaders import (
     PyPDFLoader, DirectoryLoader
 )
 from langchain.chains import RetrievalQA
+from langchain.prompts import PromptTemplate
 
 
-openai_api_key = st.secrets.api_credentials.api_key
+openai_api_key = None
+try:
+    openai_api_key = os.environ["OPENAI_API_KEY"]
+except (KeyError, AttributeError) as err:
+    print(str(err))
 
-dir_path = 'content/docs'
-file_name = "RussianConsumerLaws.pdf"
+# -----------------------------------------
+knowledge_db_dir_path = 'knowledge_db'
+knowledge_docs_dir_path = 'content/knowledge_docs'
 
+# file_name = "RussianConsumerLaws.pdf"
 # print(f"{dir_path}/{file_name}")
+# -----------------------------------------
 
-# loader = PyPDFLoader(f"{dir_path}/{file_name}")
-
-loader = DirectoryLoader('./content/docs', glob="./*.pdf", loader_cls=PyPDFLoader)
-pages = loader.load_and_split()
-print(f"{'*'*3} Loaded and split the documents")
+embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
 
 # split the text into chunks
 # text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
@@ -33,48 +38,79 @@ print(f"{'*'*3} Loaded and split the documents")
 # print(type(pages))
 # print(pages[0].metadata["source"])
 
-persist_directory = 'db'
-embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
+if os.path.isdir(knowledge_db_dir_path):
+    vector_db = Chroma(persist_directory=knowledge_db_dir_path, embedding_function=embeddings)
+else:
+    # loader = PyPDFLoader(f"{dir_path}/{file_name}")
+    loader = DirectoryLoader(knowledge_docs_dir_path, glob="./*.pdf", loader_cls=PyPDFLoader)
+    pages = loader.load_and_split()
+    print(f"{'*' * 3} Scanned and split the knowledge documents")
 
-if not (vector_db := Chroma(persist_directory=persist_directory, embedding_function=embeddings)):
-    # Embed and store the pages on disk
-    # using OpenAI embeddings for now but in future we will use local embeddings
+    # Embed and store the pages data on disk
     vector_db = Chroma.from_documents(
         documents=pages,
         embedding=embeddings,
-        persist_directory=persist_directory
+        persist_directory=knowledge_db_dir_path
     )
+    print(f"{'*' * 3} Created knowledge vector DB")
     vector_db.persist()
-print(f"{'*'*3} Loaded data into vector db")
+    print(f"{'*' * 3} Persisted vector DB to disk")
+# if end
+print(f"{'*'*3} Retrieved data from knowledge vector DB")
 
 retriever = vector_db.as_retriever()
-question = "Может ли юридическое лицо быть признано потребителем для целей закона о защите прав потребителей?"
-relevant_docs = retriever.get_relevant_documents(question)
 
-print(relevant_docs)
-# print(len(relevant_docs))
-# print(retriever.search_type)
+template = """
+Тебя зовут Арчиа, ты - старший юрист, который, отвечает на вопросы о правах потребителя, а также
+помогает разобраться в конкретных ситуациях согласно законодательству о правах потребителей, в данном контексте.
+В ответе обязательно указывай полное название релевантных статей закона о защите прав потребителей.
+Отвечай на вопросы по возможности подробно, но понятно.
+Если ты не знаешь ответ на вопрос, то так и говори, не фантазируй.
+{context}
+Вопрос: {question}
+"""
+
+PROMPT = PromptTemplate(template=template, input_variables=["context", "question"])
+
+llm = ChatOpenAI(
+    api_key=openai_api_key,
+    temperature=0,
+    # model="gpt-4-1106-preview"
+    model="gpt-3.5-turbo-16k"
+)
+#"gpt-3.5-turbo-16k", "gpt-3.5-turbo-0125"
 
 # create the chain to answer questions
 qa_chain = RetrievalQA.from_chain_type(
-    llm=OpenAI(api_key=openai_api_key),
+    llm=llm,
     chain_type="stuff",
     retriever=retriever,
-    return_source_documents=True
+    return_source_documents=True,
+    chain_type_kwargs={"prompt": PROMPT}
 )
 
+Q1 = "Может ли юридическое лицо быть признано потребителем для целей закона о защите прав потребителей?"
+pprint(qa_chain(Q1))
+# relevant_docs = retriever.get_relevant_documents(question)
+# print(relevant_docs)
+# print(len(relevant_docs))
+# print(retriever.search_type)
 
-def process_llm_response(llm_response):
-    print(llm_response['result'])
-    print('\n\nSources:')
-    for source in llm_response["source_documents"]:
-        print(source.metadata['source'])
+# Q2 = "Как тебя зовут и кто ты?"
+# pprint(qa_chain(Q2))
 
 
-llm_response = qa_chain(question)
-process_llm_response(llm_response)
+# def process_llm_response(llm_response):
+#     print(llm_response['result'])
+#     print('\n\nSources:')
+#     for source in llm_response["source_documents"]:
+#         print(source.metadata['source'])
+#
+#
+# llm_response = qa_chain(question)
+# process_llm_response(llm_response)
 
-print("\nEnd Of File!")
+print("\nFinished task!")
 
 # def load_docs(dir_path: str):
 #     loader = DirectoryLoader(dir_path)

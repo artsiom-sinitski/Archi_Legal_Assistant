@@ -14,6 +14,7 @@ PAGE_TITLE: str = "Virtual Legal Assistant"
 #     "gpt-4",
 #     "gpt-4-32k",
 #     "gpt-3.5-turbo-1106",
+#     "gpt-3.5-turbo-0125",
 #     "gpt-3.5-turbo",
 #     "gpt-3.5-turbo-16k",
 # ]
@@ -29,11 +30,11 @@ with st.sidebar:
 header = st.columns(2)
 # ------------------------
 header_tile0 = header[0].container(height=None, border=False)
-header_tile0.image("content/img/attorney2.jpg", width=260)
+header_tile0.image("content/img/attorney3.jpg", width=260)
 # ------------------------
 header_tile1 = header[1].container(height=None, border=False)
 
-header_tile1.write("💬 Арчия к Вашим услугам! Она поможет:")
+header_tile1.write("💬 Арчия к Вашим услугам! Она может:")
 # header_tile1.write("💬 Archie is at Your service! She would be able to:")
 header_tile1.divider()
 header_tile1.markdown("* ответить на Ваши вопросы")
@@ -54,7 +55,6 @@ for msg in st.session_state.messages:
 openai_api_key = None
 if prompt := st.chat_input():
     try:
-        # OpenAI.api_key = st.secrets.api_credentials.api_key
         openai_api_key = st.secrets.api_credentials.api_key
     except (KeyError, AttributeError) as err:
         pass
@@ -68,7 +68,7 @@ if prompt := st.chat_input():
     client = OpenAI(api_key=openai_api_key)
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.chat_message("user").write(prompt)
-    response = client.chat.completions.create(model="gpt-3.5-turbo-0125", messages=st.session_state.messages)
+    response = client.chat.completions.create(model="gpt-3.5-turbo-16k", messages=st.session_state.messages)
     msg = response.choices[0].message.content
     st.session_state.messages.append({"role": "assistant", "content": msg})
     st.chat_message("assistant").write(msg)
