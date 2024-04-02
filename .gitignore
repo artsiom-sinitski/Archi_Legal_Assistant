@@ -2,4 +2,6 @@
 archi/.streamlit/secrets.toml
 archi/knowledge_db/
 archi/knowledge_db/*
+archi/content/knowledge_docs/
+archi/content/knowledge_docs/*
 *.docx

@@ -60,7 +60,7 @@ print(f"{'*'*3} Retrieved data from knowledge vector DB")
 
 retriever = vector_db.as_retriever()
 
-template = """
+template_ru = """
 Тебя зовут Арчиа, ты - старший юрист, который, отвечает на вопросы о правах потребителя, а также
 помогает разобраться в конкретных ситуациях согласно законодательству о правах потребителей, в данном контексте.
 В ответе обязательно указывай полное название релевантных статей закона о защите прав потребителей.
@@ -70,7 +70,20 @@ template = """
 Вопрос: {question}
 """
 
-PROMPT = PromptTemplate(template=template, input_variables=["context", "question"])
+template_en = """
+"Assuming the role of a legal assistant specializing in consumer rights, named Archia, provide comprehensive yet
+straightforward advice on resolving issues based on the Russian consumer protection laws relevant to the provided context.
+Whenever possible, include the specific statutes or sections of the Russian consumer protection legislation that 
+support your guidance. 
+Ensure your explanations are accessible to individuals without a background in law.
+Responses should be delivered in the language of the inquiry.
+If the answer is unknown, openly state so, avoiding any guesswork.
+{context}
+Question: {question}
+"""
+
+
+PROMPT = PromptTemplate(template=template_en, input_variables=["context", "question"])
 
 llm = ChatOpenAI(
     api_key=openai_api_key,
