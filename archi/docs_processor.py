@@ -5,50 +5,83 @@ from langchain_openai import (
     ChatOpenAI, OpenAIEmbeddings
 )
 from langchain_community.vectorstores import Chroma
-# from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import (
-    PyPDFLoader, DirectoryLoader
+    TextLoader, DirectoryLoader
 )
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 
+# ============================================================================================
+# ============================================================================================
 
+sys_prompt = """
+"You are a legal assistant (named is Archia) who specializes in the Russian consumer protection laws.
+You must answer relevant questions and provide comprehensive yet straightforward advice on resolving consumer issues
+within the given context.
+Whenever possible, include the specific statutes or sections of the Russian consumer protection legislation that 
+support your guidance. 
+Ensure your explanations are accessible to individuals without a background in law.
+Responses should be delivered in the language of the inquiry.
+If the answer is unknown, openly state so, avoiding any guesswork.
+{context}
+Question: {question}
+"""
+
+PROMPT = PromptTemplate(template=sys_prompt, input_variables=["context", "question"])
+
+# -------------------------------------------------------------------------------------------
+
+knowledge_db_dir_path = "knowledge_db"
+knowledge_docs_dir_path = rf"{os.environ["USERDIR"]}\Documents\archi_knowledge_docs"
+
+# ----------------------------------------------------------
 openai_api_key = None
-try:
-    openai_api_key = os.environ["OPENAI_API_KEY"]
-except (KeyError, AttributeError) as err:
-    print(str(err))
-
-# -----------------------------------------
-knowledge_db_dir_path = 'knowledge_db'
-knowledge_docs_dir_path = 'content/knowledge_docs'
-
-# file_name = "RussianConsumerLaws.pdf"
-# print(f"{dir_path}/{file_name}")
-# -----------------------------------------
-
 embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
 
-# split the text into chunks
-# text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-# texts = text_splitter.split_documents(pages)
+# ============================================================================================
+# ============================================================================================
 
 # print(texts[0])
 # print(pages[0])
 # print(type(pages))
 # print(pages[0].metadata["source"])
 
+try:
+    openai_api_key = os.environ["OPENAI_API_KEY"]
+except (KeyError, AttributeError) as err:
+    print(str(err))
+
+
 if os.path.isdir(knowledge_db_dir_path):
     vector_db = Chroma(persist_directory=knowledge_db_dir_path, embedding_function=embeddings)
 else:
-    # loader = PyPDFLoader(f"{dir_path}/{file_name}")
-    loader = DirectoryLoader(knowledge_docs_dir_path, glob="./*.pdf", loader_cls=PyPDFLoader)
-    pages = loader.load_and_split()
+    loader = DirectoryLoader(knowledge_docs_dir_path,
+        glob="./*.txt",
+        loader_cls=TextLoader,
+        loader_kwargs={'encoding': "Windows-1251"},
+        use_multithreading=True,
+        show_progress=True
+    )
+    text_splitter = RecursiveCharacterTextSplitter(
+        separators=["\n\n", "\n", "\t", " ", ".", ",", "",
+                    "\u200B",  # Zero-width space
+                    "\uff0c",  # Full-width comma
+                    "\u3001",  # Ideographic comma
+                    "\uff0e",  # Full-width full stop
+                    "\u3002",  # Ideographic full stop
+                    ],
+        chunk_size=2000, chunk_overlap=200,
+        length_function=len, is_separator_regex=False
+    )
+    docs = loader.load()
+    data = text_splitter.split_documents(docs)
+
     print(f"{'*' * 3} Scanned and split the knowledge documents")
 
     # Embed and store the pages data on disk
     vector_db = Chroma.from_documents(
-        documents=pages,
+        documents=data,
         embedding=embeddings,
         persist_directory=knowledge_db_dir_path
     )
@@ -60,38 +93,12 @@ print(f"{'*'*3} Retrieved data from knowledge vector DB")
 
 retriever = vector_db.as_retriever()
 
-template_ru = """
-Тебя зовут Арчиа, ты - старший юрист, который, отвечает на вопросы о правах потребителя, а также
-помогает разобраться в конкретных ситуациях согласно законодательству о правах потребителей, в данном контексте.
-В ответе обязательно указывай полное название релевантных статей закона о защите прав потребителей.
-Отвечай на вопросы по возможности подробно, но понятно.
-Если ты не знаешь ответ на вопрос, то так и говори, не фантазируй.
-{context}
-Вопрос: {question}
-"""
-
-template_en = """
-"Assuming the role of a legal assistant specializing in consumer rights, named Archia, provide comprehensive yet
-straightforward advice on resolving issues based on the Russian consumer protection laws relevant to the provided context.
-Whenever possible, include the specific statutes or sections of the Russian consumer protection legislation that 
-support your guidance. 
-Ensure your explanations are accessible to individuals without a background in law.
-Responses should be delivered in the language of the inquiry.
-If the answer is unknown, openly state so, avoiding any guesswork.
-{context}
-Question: {question}
-"""
-
-
-PROMPT = PromptTemplate(template=template_en, input_variables=["context", "question"])
-
 llm = ChatOpenAI(
     api_key=openai_api_key,
     temperature=0,
     # model="gpt-4-1106-preview"
     model="gpt-3.5-turbo-16k"
 )
-#"gpt-3.5-turbo-16k", "gpt-3.5-turbo-0125"
 
 # create the chain to answer questions
 qa_chain = RetrievalQA.from_chain_type(
