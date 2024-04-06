@@ -16,12 +16,10 @@ from langchain.prompts import PromptTemplate
 # ============================================================================================
 
 sys_prompt = """
-"You are a legal assistant (named is Archia) who specializes in the Russian consumer protection laws.
-You must answer relevant questions and provide comprehensive yet straightforward advice on resolving consumer issues
-within the given context.
-Whenever possible, include the specific statutes or sections of the Russian consumer protection legislation that 
-support your guidance. 
-Ensure your explanations are accessible to individuals without a background in law.
+"You are a legal assistant (named is Archia) who specializes in the Russian Federation consumer protection laws.
+Your task is to answer relevant questions or provide comprehensive yet straightforward advice on resolving consumer issues
+within the given context. Whenever possible include the statute numbers as a reference.
+Ensure your explanations can be understood by individuals without the knowledge of the law and legislative terms.
 Responses should be delivered in the language of the inquiry.
 If the answer is unknown, openly state so, avoiding any guesswork.
 {context}
@@ -57,25 +55,36 @@ if os.path.isdir(knowledge_db_dir_path):
     vector_db = Chroma(persist_directory=knowledge_db_dir_path, embedding_function=embeddings)
 else:
     loader = DirectoryLoader(knowledge_docs_dir_path,
-        glob="./*.txt",
+        glob="**/*.txt",
         loader_cls=TextLoader,
-        loader_kwargs={'encoding': "Windows-1251"},
+        loader_kwargs={"encoding": "Windows-1251"},
         use_multithreading=True,
         show_progress=True
     )
-    text_splitter = RecursiveCharacterTextSplitter(
-        separators=["\n\n", "\n", "\t", " ", ".", ",", "",
-                    "\u200B",  # Zero-width space
-                    "\uff0c",  # Full-width comma
-                    "\u3001",  # Ideographic comma
-                    "\uff0e",  # Full-width full stop
-                    "\u3002",  # Ideographic full stop
-                    ],
-        chunk_size=2000, chunk_overlap=200,
-        length_function=len, is_separator_regex=False
-    )
-    docs = loader.load()
-    data = text_splitter.split_documents(docs)
+    # text_splitter = RecursiveCharacterTextSplitter(
+    #     separators=[
+    #         "\n\n" #, "\n", "\t", " ", ".", ",", "",
+    #         # "\u200B",  # Zero-width space
+    #         # "\uff0c",  # Full-width comma
+    #         # "\u3001",  # Ideographic comma
+    #         # "\uff0e",  # Full-width full stop
+    #         # "\u3002",  # Ideographic full stop
+    #     ],
+    #     chunk_size=2000, chunk_overlap=200,
+    #     length_function=len, is_separator_regex=False
+    # )
+    # docs = loader.load()
+    # data = text_splitter.split_documents(docs)
+
+    import sys
+    if "nltk" not in sys.modules:
+        import nltk
+        nltk.download('punkt')
+
+    from langchain.text_splitter import NLTKTextSplitter
+
+    text_splitter = NLTKTextSplitter(separator="\n\n", language='russian')
+    data = loader.load_and_split(text_splitter)
 
     print(f"{'*' * 3} Scanned and split the knowledge documents")
 
@@ -96,8 +105,8 @@ retriever = vector_db.as_retriever()
 llm = ChatOpenAI(
     api_key=openai_api_key,
     temperature=0,
-    # model="gpt-4-1106-preview"
-    model="gpt-3.5-turbo-16k"
+    model="gpt-4-1106-preview"
+    # model="gpt-3.5-turbo-16k"
 )
 
 # create the chain to answer questions
