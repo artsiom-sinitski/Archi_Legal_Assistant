@@ -1,11 +1,17 @@
 import os
+import sys
 from pprint import pprint
+
+if "nltk" not in sys.modules:
+    import nltk
 
 from langchain_openai import (
     ChatOpenAI, OpenAIEmbeddings
 )
 from langchain_community.vectorstores import Chroma
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.text_splitter import (
+    NLTKTextSplitter #, RecursiveCharacterTextSplitter
+)
 from langchain_community.document_loaders import (
     TextLoader, DirectoryLoader
 )
@@ -79,12 +85,11 @@ else:
     # docs = loader.load()
     # data = text_splitter.split_documents(docs)
 
-    import sys
-    if "nltk" not in sys.modules:
-        import nltk
-        nltk.download('punkt')
-
-    from langchain.text_splitter import NLTKTextSplitter
+    # TODO
+    # add dir check and donaload package if it is not found
+    # nltk_downloader = nltk.downloader.Downloader
+    # nltk_downloader.is_installed('punkt')
+    nltk.download('punkt')
 
     text_splitter = NLTKTextSplitter(separator="\n\n", language='russian')
     data = loader.load_and_split(text_splitter)
@@ -141,8 +146,6 @@ pprint(qa_chain(Q1))
 #
 # llm_response = qa_chain(question)
 # process_llm_response(llm_response)
-
-print("\nFinished task!")
 
 # def load_docs(dir_path: str):
 #     loader = DirectoryLoader(dir_path)
