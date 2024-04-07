@@ -16,12 +16,15 @@ from langchain.prompts import PromptTemplate
 # ============================================================================================
 
 sys_prompt = """
-"You are a legal assistant (named is Archia) who specializes in the Russian Federation consumer protection laws.
+"You are a legal assistant (named Archia) who specializes in the consumer protection laws of the Russian Federation.
 Your task is to answer relevant questions or provide comprehensive yet straightforward advice on resolving consumer issues
-within the given context. Whenever possible include the statute numbers as a reference.
+within the given context. Whenever possible include in your answer the exact laws and their statute numbers as references.
 Ensure your explanations can be understood by individuals without the knowledge of the law and legislative terms.
 Responses should be delivered in the language of the inquiry.
 If the answer is unknown, openly state so, avoiding any guesswork.
+Your answers must use these fundamental definitions:
+1. Consumer is a citizen (a.k.a. individual, a.k.a. natural person)
+2. Consumer is not a legal entity
 {context}
 Question: {question}
 """
@@ -94,19 +97,19 @@ else:
         embedding=embeddings,
         persist_directory=knowledge_db_dir_path
     )
-    print(f"{'*' * 3} Created knowledge vector DB")
+    print(f"{'*' * 3} Created knowledge database (db)")
     vector_db.persist()
-    print(f"{'*' * 3} Persisted vector DB to disk")
+    print(f"{'*' * 3} Persisted knowledge db to disk")
 # if end
-print(f"{'*'*3} Retrieved data from knowledge vector DB")
+print(f"{'*'*3} Retrieved data from the knowledge db")
 
 retriever = vector_db.as_retriever()
 
 llm = ChatOpenAI(
     api_key=openai_api_key,
     temperature=0,
-    model="gpt-4-1106-preview"
-    # model="gpt-3.5-turbo-16k"
+    # model="gpt-4-1106-preview"
+    model="gpt-3.5-turbo-16k"
 )
 
 # create the chain to answer questions
