@@ -1,5 +1,6 @@
 import os
 import sys
+from archi.src.constants import WIN_ENCODING_RU
 from pprint import pprint
 
 if "nltk" not in sys.modules:
@@ -22,15 +23,12 @@ from langchain.prompts import PromptTemplate
 # ============================================================================================
 
 sys_prompt = """
-"You are a legal assistant (named Archia) who specializes in the consumer protection laws of the Russian Federation.
+You are a legal assistant (named Archia) who specializes in the consumer protection laws of the Russian Federation.
 Your task is to answer relevant questions or provide comprehensive yet straightforward advice on resolving consumer issues
 within the given context. Whenever possible include in your answer the exact laws and their statute numbers as references.
 Ensure your explanations can be understood by individuals without the knowledge of the law and legislative terms.
 Responses should be delivered in the language of the inquiry.
 If the answer is unknown, openly state so, avoiding any guesswork.
-Your answers must use these fundamental definitions:
-1. Consumer is a citizen (a.k.a. individual, a.k.a. natural person)
-2. Consumer is not a legal entity
 {context}
 Question: {question}
 """
@@ -39,12 +37,11 @@ PROMPT = PromptTemplate(template=sys_prompt, input_variables=["context", "questi
 
 # -------------------------------------------------------------------------------------------
 
-knowledge_db_dir_path = "knowledge_db"
+knowledge_db_dir_path = "../knowledge_db"
 knowledge_docs_dir_path = rf"{os.environ["USERDIR"]}\Documents\archi_knowledge_docs"
 
 # ----------------------------------------------------------
 openai_api_key = None
-embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
 
 # ============================================================================================
 # ============================================================================================
@@ -59,6 +56,7 @@ try:
 except (KeyError, AttributeError) as err:
     print(str(err))
 
+embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
 
 if os.path.isdir(knowledge_db_dir_path):
     vector_db = Chroma(persist_directory=knowledge_db_dir_path, embedding_function=embeddings)
@@ -66,7 +64,7 @@ else:
     loader = DirectoryLoader(knowledge_docs_dir_path,
         glob="**/*.txt",
         loader_cls=TextLoader,
-        loader_kwargs={"encoding": "Windows-1251"},
+        loader_kwargs={"encoding": WIN_ENCODING_RU},
         use_multithreading=True,
         show_progress=True
     )
