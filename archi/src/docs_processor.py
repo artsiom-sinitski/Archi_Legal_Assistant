@@ -1,6 +1,7 @@
 import os
 import sys
 from archi.src.constants import WIN_ENCODING_RU
+from archi.src.prompts import sys_prompt_en_1
 from pprint import pprint
 
 if "nltk" not in sys.modules:
@@ -22,18 +23,7 @@ from langchain.prompts import PromptTemplate
 # ============================================================================================
 # ============================================================================================
 
-sys_prompt = """
-You are a legal assistant (named Archia) who specializes in the consumer protection laws of the Russian Federation.
-Your task is to answer relevant questions or provide comprehensive yet straightforward advice on resolving consumer issues
-within the given context. Whenever possible include in your answer the exact laws and their statute numbers as references.
-Ensure your explanations can be understood by individuals without the knowledge of the law and legislative terms.
-Responses should be delivered in the language of the inquiry.
-If the answer is unknown, openly state so, avoiding any guesswork.
-{context}
-Question: {question}
-"""
-
-PROMPT = PromptTemplate(template=sys_prompt, input_variables=["context", "question"])
+PROMPT = PromptTemplate(template=sys_prompt_en_1, input_variables=["context", "question"])
 
 # -------------------------------------------------------------------------------------------
 
@@ -84,7 +74,7 @@ else:
     # data = text_splitter.split_documents(docs)
 
     # TODO
-    # add dir check and donaload package if it is not found
+    # add dir check and download package if it is not found
     # nltk_downloader = nltk.downloader.Downloader
     # nltk_downloader.is_installed('punkt')
     nltk.download('punkt')
@@ -124,8 +114,14 @@ qa_chain = RetrievalQA.from_chain_type(
     chain_type_kwargs={"prompt": PROMPT}
 )
 
-Q1 = "Может ли юридическое лицо быть признано потребителем для целей закона о защите прав потребителей?"
-pprint(qa_chain(Q1))
+# Q1 = "Может ли юридическое лицо быть признано потребителем для целей закона о защите прав потребителей?"
+# answer = qa_chain(Q1)
+# pprint(answer)
+#
+# print(type(answer))
+# print(f"{answer.get("result")}")
+
+
 # relevant_docs = retriever.get_relevant_documents(question)
 # print(relevant_docs)
 # print(len(relevant_docs))
@@ -150,5 +146,5 @@ pprint(qa_chain(Q1))
 #     documents = loader.load()
 #     return documents
 
-if __name__ == "__main__":
-    pass
+# if __name__ == "__main__":
+#     pass

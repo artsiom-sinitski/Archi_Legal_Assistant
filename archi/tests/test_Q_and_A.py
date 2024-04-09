@@ -1,8 +1,12 @@
 import os
 import json
+from pprint import pprint
+from datetime import datetime
 
 # from pathlib import Path
 from archi.src.constants import WIN_ENCODING_RU
+from archi.src.prompts import sys_prompt_en_1
+from archi.src import docs_processor as dp
 
 
 # --- PATH SETTINGS ---
@@ -10,18 +14,34 @@ from archi.src.constants import WIN_ENCODING_RU
 
 
 def main() -> None:
+    curr_date = datetime.now()
+
     file_path = rf"{os.environ["USERDIR"]}\Documents\archi_knowledge_docs\test_q_and_a"
-    file_name = "Test_questions_20240327.json"
+    questions_file_name = "Test_questions_20240327.json"
+    ans_file_name = f"Test_answers_{curr_date.strftime("%Y%m%d%H%M")}.txt"
     data, questions = None, None
 
-    with open(fr"{file_path}\{file_name}", encoding=WIN_ENCODING_RU) as fp:
+    with open(fr"{file_path}\{questions_file_name}", 'r', encoding=WIN_ENCODING_RU) as fp:
         data = json.load(fp)
 
     questions = data.get("Questions")
     # pprint(questions)
 
-    for question in questions:
-        print(question)
+    with open(fr"{file_path}\{ans_file_name}", 'w', encoding=WIN_ENCODING_RU) as fp:
+        fp.write(f"Date:\t{curr_date.strftime("%Y-%m-%d %H:%M")}\n\n")
+        fp.write(f"PROMPT:{sys_prompt_en_1}")
+        fp.write(f"\n{'#'*120}\n")
+
+        for idx, question in enumerate(questions, start=1):
+            print(f"Processed -> {question}")
+            fp.writelines([f"Q{idx}:\n", f"{question}\n\n", "Answer:\n"])
+            # fp.write(f"{question}\n\n")
+            # fp.write("Answer:\n")
+            # pprint(dp.qa_chain(question))
+            answer = dp.qa_chain(question)
+            fp.write(answer.get("result"))
+            # fp.write(answer.get("source_documents"))
+            fp.write(f"\n {'-'*120} \n")
 
 
 if __name__ == "__main__":
