@@ -17,7 +17,7 @@ def main() -> None:
     curr_date = datetime.now()
 
     file_path = rf"{os.environ["USERDIR"]}\Documents\archi_knowledge_docs\test_q_and_a"
-    questions_file_name = "Test_questions_20240327.json"
+    questions_file_name = "Test_questions_25.json"
     ans_file_name = f"Test_answers_{curr_date.strftime("%Y%m%d%H%M")}.txt"
     data, questions = None, None
 
@@ -28,20 +28,21 @@ def main() -> None:
     # pprint(questions)
 
     with open(fr"{file_path}\{ans_file_name}", 'w', encoding=WIN_ENCODING_RU) as fp:
-        fp.write(f"Date:\t{curr_date.strftime("%Y-%m-%d %H:%M")}\n\n")
+        fp.write(f"Date:\t{curr_date.strftime("%Y-%m-%d %H:%M")}\n")
+        fp.write(f"Encoding:\t{WIN_ENCODING_RU}\n")
         fp.write(f"PROMPT:{sys_prompt_en_1}")
-        fp.write(f"\n{'#'*120}\n")
+        fp.write(f"\n{'#'*70}\n")
 
         for idx, question in enumerate(questions, start=1):
-            print(f"Processed -> {question}")
             fp.writelines([f"Q{idx}:\n", f"{question}\n\n", "Answer:\n"])
-            # fp.write(f"{question}\n\n")
-            # fp.write("Answer:\n")
             # pprint(dp.qa_chain(question))
             answer = dp.qa_chain(question)
             fp.write(answer.get("result"))
             # fp.write(answer.get("source_documents"))
-            fp.write(f"\n {'-'*120} \n")
+            fp.write(f"\n {'-'*70} \n")
+            print(f"Processed -> {idx}. {question}")
+        # for end
+    # with end
 
 
 if __name__ == "__main__":
