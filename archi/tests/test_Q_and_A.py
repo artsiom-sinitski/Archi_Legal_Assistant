@@ -29,7 +29,7 @@ def main() -> None:
 
     with open(fr"{file_path}\{ans_file_name}", 'w', encoding=WIN_ENCODING_RU) as fp:
         fp.write(f"Date:\t{curr_date.strftime("%Y-%m-%d %H:%M")}\n")
-        fp.write(f"Encoding:\t{WIN_ENCODING_RU}\n")
+        fp.write(f"Encoding:\t{WIN_ENCODING_RU}\n\n")
         fp.write(f"PROMPT:{sys_prompt_en_1}")
         fp.write(f"\n{'#'*70}\n")
 
