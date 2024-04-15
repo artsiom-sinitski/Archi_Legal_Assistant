@@ -27,6 +27,9 @@ PROMPT = PromptTemplate(template=sys_prompt_en_1, input_variables=["context", "q
 
 # -------------------------------------------------------------------------------------------
 
+# TODO: get absoulute root dir https://stackoverflow.com/questions/25389095/python-get-path-of-root-project-structure
+# https://medium.com/@dataproducts/python-the-pythonic-way-to-handle-file-directories-for-your-data-project-6b19417463ad
+# https://discourse.jupyter.org/t/how-to-reference-root-directory/11110
 knowledge_db_dir_path = "../knowledge_db"
 knowledge_docs_dir_path = rf"{os.environ["USERDIR"]}\Documents\archi_knowledge_docs"
 
@@ -52,11 +55,9 @@ if os.path.isdir(knowledge_db_dir_path):
     vector_db = Chroma(persist_directory=knowledge_db_dir_path, embedding_function=embeddings)
 else:
     loader = DirectoryLoader(knowledge_docs_dir_path,
-        glob="**/*.txt",
-        loader_cls=TextLoader,
+        glob="**/*.txt", loader_cls=TextLoader,
         loader_kwargs={"encoding": WIN_ENCODING_RU},
-        use_multithreading=True,
-        show_progress=True
+        use_multithreading=True, show_progress=True
     )
     # text_splitter = RecursiveCharacterTextSplitter(
     #     separators=[
@@ -79,10 +80,13 @@ else:
     # nltk_downloader.is_installed('punkt')
     nltk.download('punkt')
 
-    text_splitter = NLTKTextSplitter(separator="\n\n", language='russian')
+    text_splitter = NLTKTextSplitter(separator="\n\n", language="russian")
     data = loader.load_and_split(text_splitter)
 
     print(f"{'*' * 3} Scanned and split the knowledge documents")
+    # for source in data["source_documents"]:
+    #     print(f" --- {source.metadata['source']}")
+    # pprint(data.metadata.get("source"))
 
     # Embed and store the pages data on disk
     vector_db = Chroma.from_documents(
@@ -115,8 +119,9 @@ qa_chain = RetrievalQA.from_chain_type(
 )
 
 # Q1 = "Может ли юридическое лицо быть признано потребителем для целей закона о защите прав потребителей?"
-# answer = qa_chain(Q1)
-# pprint(answer)
+Q1 = "С какого возраста допускается заключение договора розничной купли-продажи?"
+answer = qa_chain(Q1)
+pprint(answer)
 #
 # print(type(answer))
 # print(f"{answer.get("result")}")

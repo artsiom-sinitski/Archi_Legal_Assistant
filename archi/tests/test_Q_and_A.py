@@ -17,8 +17,13 @@ def main() -> None:
     curr_date = datetime.now()
 
     file_path = rf"{os.environ["USERDIR"]}\Documents\archi_knowledge_docs\test_q_and_a"
-    questions_file_name = "Test_questions_25.json"
-    ans_file_name = f"Test_answers_{curr_date.strftime("%Y%m%d%H%M")}.txt"
+    # ---------------------------------------------------------------------------------
+    # questions_file_name = "Consumer_protection_law-25_questions.json"
+    questions_file_name = "Retail_Sale_Law-20_questions.json"
+    topic = questions_file_name.split('-')[0]
+    ans_file_name = f"Answers_to_{topic}_{curr_date.strftime("%Y%m%d")}.txt"
+    # ---------------------------------------------------------------------------------
+
     data, questions = None, None
 
     with open(fr"{file_path}\{questions_file_name}", 'r', encoding=WIN_ENCODING_RU) as fp:
