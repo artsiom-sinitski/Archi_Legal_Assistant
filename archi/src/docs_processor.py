@@ -1,8 +1,10 @@
 import os
 import sys
+from pprint import pprint
+
+from archi.src.utilities import get_project_root
 from archi.src.constants import WIN_ENCODING_RU
 from archi.src.prompts import sys_prompt_en_1
-from pprint import pprint
 
 if "nltk" not in sys.modules:
     import nltk
@@ -27,10 +29,7 @@ PROMPT = PromptTemplate(template=sys_prompt_en_1, input_variables=["context", "q
 
 # -------------------------------------------------------------------------------------------
 
-# TODO: get absoulute root dir https://stackoverflow.com/questions/25389095/python-get-path-of-root-project-structure
-# https://medium.com/@dataproducts/python-the-pythonic-way-to-handle-file-directories-for-your-data-project-6b19417463ad
-# https://discourse.jupyter.org/t/how-to-reference-root-directory/11110
-knowledge_db_dir_path = "../knowledge_db"
+knowledge_db_dir_path = f"{get_project_root()}/knowledge_db"
 knowledge_docs_dir_path = rf"{os.environ["USERDIR"]}\Documents\archi_knowledge_docs"
 
 # ----------------------------------------------------------
@@ -38,11 +37,6 @@ openai_api_key = None
 
 # ============================================================================================
 # ============================================================================================
-
-# print(texts[0])
-# print(pages[0])
-# print(type(pages))
-# print(pages[0].metadata["source"])
 
 try:
     openai_api_key = os.environ["OPENAI_API_KEY"]
@@ -55,24 +49,10 @@ if os.path.isdir(knowledge_db_dir_path):
     vector_db = Chroma(persist_directory=knowledge_db_dir_path, embedding_function=embeddings)
 else:
     loader = DirectoryLoader(knowledge_docs_dir_path,
-        glob="**/*.txt", loader_cls=TextLoader,
+        glob="*.txt", loader_cls=TextLoader,
         loader_kwargs={"encoding": WIN_ENCODING_RU},
-        use_multithreading=True, show_progress=True
+        recursive=False, use_multithreading=True, show_progress=True
     )
-    # text_splitter = RecursiveCharacterTextSplitter(
-    #     separators=[
-    #         "\n\n" #, "\n", "\t", " ", ".", ",", "",
-    #         # "\u200B",  # Zero-width space
-    #         # "\uff0c",  # Full-width comma
-    #         # "\u3001",  # Ideographic comma
-    #         # "\uff0e",  # Full-width full stop
-    #         # "\u3002",  # Ideographic full stop
-    #     ],
-    #     chunk_size=2000, chunk_overlap=200,
-    #     length_function=len, is_separator_regex=False
-    # )
-    # docs = loader.load()
-    # data = text_splitter.split_documents(docs)
 
     # TODO
     # add dir check and download package if it is not found
@@ -83,10 +63,13 @@ else:
     text_splitter = NLTKTextSplitter(separator="\n\n", language="russian")
     data = loader.load_and_split(text_splitter)
 
-    print(f"{'*' * 3} Scanned and split the knowledge documents")
-    # for source in data["source_documents"]:
-    #     print(f" --- {source.metadata['source']}")
-    # pprint(data.metadata.get("source"))
+    print(f"{'*' * 3} Scanned and split the knowledge documents {'*'*3}")
+    seen_docs = set()
+    for source in data:
+        source_meta = source.metadata['source'].split('\\')[-1]
+        if source_meta not in seen_docs:
+            seen_docs.add(source_meta)
+            print(f"\t - {source_meta}")
 
     # Embed and store the pages data on disk
     vector_db = Chroma.from_documents(
@@ -94,11 +77,11 @@ else:
         embedding=embeddings,
         persist_directory=knowledge_db_dir_path
     )
-    print(f"{'*' * 3} Created knowledge database (db)")
+    print(f"{'*' * 3} Created knowledge database (db) {'*'*3}")
     vector_db.persist()
-    print(f"{'*' * 3} Persisted knowledge db to disk")
+    print(f"{'*' * 3} Persisted knowledge db to disk {'*'*3}")
 # if end
-print(f"{'*'*3} Retrieved data from the knowledge db")
+print(f"{'*'*3} Retrieved data from the knowledge db {'*'*3}")
 
 retriever = vector_db.as_retriever()
 
@@ -118,10 +101,14 @@ qa_chain = RetrievalQA.from_chain_type(
     chain_type_kwargs={"prompt": PROMPT}
 )
 
+
+# ===============================================================
+# ===============================================================
+
 # Q1 = "Может ли юридическое лицо быть признано потребителем для целей закона о защите прав потребителей?"
-Q1 = "С какого возраста допускается заключение договора розничной купли-продажи?"
-answer = qa_chain(Q1)
-pprint(answer)
+# Q1 = "С какого возраста допускается заключение договора розничной купли-продажи?"
+# answer = qa_chain(Q1)
+# pprint(answer)
 #
 # print(type(answer))
 # print(f"{answer.get("result")}")
