@@ -1,6 +1,6 @@
 import os
 import json
-from pprint import pprint
+# from pprint import pprint
 from datetime import datetime
 
 from archi.src.constants import WIN_ENCODING_RU
@@ -16,14 +16,14 @@ def main() -> None:
     # questions_file_name = "Consumer_protection_law-25_questions.json"
     # questions_file_name = "Retail_Sale_Law-20_questions.json"
     # questions_file_name = "Question_16_04_Неустойка.json"
-    questions_file_name = "Questions_16_04.json"
+    # questions_file_name = "Questions_16_04.json"
+    # questions_file_name = "Question_20240731_Неустойка.json"
+    questions_file_name = "Questions_1_percent_rule.json"
 
     topic = questions_file_name.split('.')[0]
 
     ans_file_name = f"Answers_to_{topic}_{curr_date.strftime("%Y%m%d")}.txt"
     # ---------------------------------------------------------------------------------
-
-    data, questions = None, None
 
     with open(fr"{file_path}\{questions_file_name}", 'r', encoding=WIN_ENCODING_RU) as fp:
         data = json.load(fp)
@@ -32,9 +32,10 @@ def main() -> None:
     # pprint(questions)
 
     with open(fr"{file_path}\{ans_file_name}", 'w', encoding=WIN_ENCODING_RU) as fp:
-        fp.write(f"DATE:\t{curr_date.strftime("%Y-%m-%d %H:%M")}\n")
-        fp.write(f"ENCODING:\t{WIN_ENCODING_RU}\n\n")
-        fp.write(f"PROMPT:{sys_prompt_en_1}")
+        fp.write(f"    DATE:\t{curr_date.strftime("%Y-%m-%d %H:%M")}\n")
+        fp.write(f"ENCODING:\t{WIN_ENCODING_RU}\n")
+        fp.write(f"  Q-FILE:\t{questions_file_name}\n")
+        fp.write(f"  PROMPT:\n{sys_prompt_en_1}")
         fp.write(f"\n{'#'*70}\n")
 
         for idx, question in enumerate(questions, start=1):
@@ -42,7 +43,7 @@ def main() -> None:
             answer = dp.qa_chain(question)
             fp.write(answer.get("result"))
             fp.write(f"\n {'-'*70} \n")
-            print(f"Processed -> {idx}. {question}")
+            print(f"Processed Q{idx}. -> {question}")
         # for end
     # with end
 

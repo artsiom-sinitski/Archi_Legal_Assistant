@@ -4,7 +4,7 @@ from pprint import pprint
 
 from archi.src.utilities import get_project_root
 from archi.src.constants import WIN_ENCODING_RU
-from archi.src.prompts import sys_prompt_en_1
+from archi.src.prompts import sys_prompt_ru_1
 
 if "nltk" not in sys.modules:
     import nltk
@@ -25,7 +25,7 @@ from langchain.prompts import PromptTemplate
 # ============================================================================================
 # ============================================================================================
 
-PROMPT = PromptTemplate(template=sys_prompt_en_1, input_variables=["context", "question"])
+PROMPT = PromptTemplate(template=sys_prompt_ru_1, input_variables=["context", "question"])
 
 # -------------------------------------------------------------------------------------------
 
@@ -88,8 +88,9 @@ retriever = vector_db.as_retriever()
 llm = ChatOpenAI(
     api_key=openai_api_key,
     temperature=0,
+    model="gpt-4o-mini-2024-07-18"
     # model="gpt-4-1106-preview"
-    model="gpt-3.5-turbo-16k"
+    # model="gpt-3.5-turbo-16k"
 )
 
 # create the chain to answer questions

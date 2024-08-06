@@ -17,6 +17,7 @@ PAGE_TITLE: str = "Virtual Legal Assistant"
 #     "gpt-3.5-turbo-0125",
 #     "gpt-3.5-turbo",
 #     "gpt-3.5-turbo-16k",
+#     "gpt-4o"
 # ]
 
 st.set_page_config(page_title=PAGE_TITLE, page_icon=PAGE_ICON)
