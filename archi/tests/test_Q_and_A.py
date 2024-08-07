@@ -42,7 +42,7 @@ def main() -> None:
             fp.writelines([f"Q{idx} |\n", "----\n",  f"{question}\n\n", "Answer:\n"])
             answer = dp.qa_chain(question)
             fp.write(answer.get("result"))
-            fp.write(f"\n {'-'*70} \n")
+            fp.write(f"\n\n {'-'*70} \n")
             print(f"Processed Q{idx} -> {question}")
         # for end
     # with end
