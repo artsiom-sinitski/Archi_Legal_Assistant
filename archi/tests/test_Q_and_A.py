@@ -39,11 +39,11 @@ def main() -> None:
         fp.write(f"\n{'#'*70}\n")
 
         for idx, question in enumerate(questions, start=1):
-            fp.writelines([f"Q{idx}:\n", f"{question}\n\n", "Answer:\n"])
+            fp.writelines([f"Q{idx} |\n", "----\n",  f"{question}\n\n", "Answer:\n"])
             answer = dp.qa_chain(question)
             fp.write(answer.get("result"))
             fp.write(f"\n {'-'*70} \n")
-            print(f"Processed Q{idx}. -> {question}")
+            print(f"Processed Q{idx} -> {question}")
         # for end
     # with end
 
