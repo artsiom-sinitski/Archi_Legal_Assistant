@@ -73,7 +73,7 @@ if user_input := st.chat_input():
 
     llm = ChatOpenAI(
         api_key=openai_api_key,
-        temperature=0.2,
+        temperature=0,
         model=llm_model
     )
 
