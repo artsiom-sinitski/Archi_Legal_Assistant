@@ -1,4 +1,0 @@
-pip>=24.0
-openai==1.14.0
-streamlit>=1.32.1
-
