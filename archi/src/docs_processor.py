@@ -1,8 +1,3 @@
-# sys.path.append(rf"{Path(__file__).parent.parent}")
-# sys.path.append(rf"{Path(__file__).parent.parent.parent}")
-# sys.path.append(rf"{Path(__file__).parent.parent.parent.parent}")
-# print(rf" *** {Path(__file__).parent.parent}")
-# sys.path.append(rf"{Path(__file__).parent.parent}\.streamlit\\")
 import os
 import sys
 from pathlib import Path
@@ -88,67 +83,9 @@ else:
         persist_directory=knowledge_db_path
     )
     print(f"{'*' * 3} Created knowledge database (db) {'*'*3}")
-    # vector_db.persist()
-    # print(f"{'*' * 3} Persisted knowledge db to disk {'*'*3}")
 # if end
 print(f"{'*'*3} Retrieved data from the knowledge db {'*'*3}")
 
 
 def get_vector_db_retriever():
     return vector_db.as_retriever()
-
-
-# llm = ChatOpenAI(
-#     api_key=openai_api_key,
-#     temperature=0,
-#     model=gpt_model
-# )
-#
-# # create the chain to answer questions
-# qa_chain = RetrievalQA.from_chain_type(
-#     llm=llm,
-#     chain_type="stuff",
-#     retriever=retriever,
-#     return_source_documents=True,
-#     chain_type_kwargs={"prompt": PROMPT}
-# )
-
-
-# ===============================================================
-# ===============================================================
-
-# Q1 = "Может ли юридическое лицо быть признано потребителем для целей закона о защите прав потребителей?"
-# Q1 = "С какого возраста допускается заключение договора розничной купли-продажи?"
-# answer = qa_chain(Q1)
-# pprint(answer)
-#
-# print(type(answer))
-# print(f"{answer.get("result")}")
-
-
-# relevant_docs = retriever.get_relevant_documents(question)
-# print(relevant_docs)
-# print(len(relevant_docs))
-# print(retriever.search_type)
-
-# Q2 = "Как тебя зовут и кто ты?"
-# pprint(qa_chain(Q2))
-
-
-# def process_llm_response(llm_response):
-#     print(llm_response['result'])
-#     print('\n\nSources:')
-#     for source in llm_response["source_documents"]:
-#         print(source.metadata['source'])
-#
-#
-# llm_response = qa_chain(question)
-# process_llm_response(llm_response)
-
-# def load_docs(dir_path: str):
-#     loader = DirectoryLoader(dir_path)
-#     documents = loader.load()
-#     return documents
-
-# if __name__ == "__main__":
-#     pass
