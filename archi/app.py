@@ -26,7 +26,6 @@ PAGE_TITLE: str = "Virtual Legal Assistant"
 # LANG_EN: str = "EN"
 # LANG_RU: str = "RU"dir
 
-
 st.set_page_config(page_title=PAGE_TITLE, page_icon=PAGE_ICON)
 
 # with st.sidebar:
