@@ -1,50 +1,80 @@
 import os
+import sys
 import json
 # from pprint import pprint
 from datetime import datetime
 
-from archi.src.constants import WIN_ENCODING_RU
-from archi.src.prompts import sys_prompt_en_1
-from archi.src import docs_processor as dp
+from pathlib import Path
+sys.path.append(rf"{Path(__file__).parent.parent}")
+
+# from openai import OpenAI
+from langchain_openai import ChatOpenAI
+from langchain.chains import RetrievalQA
+from langchain.prompts import PromptTemplate
+
+from src.constants import (WIN_ENCODING_RU, AI_MODELS)
+from src.prompts import sys_prompt_ru_1
+import src.docs_processor as dp
+
+# --------------------------------------
+openai_api_key = os.environ["OPENAI_API_KEY"]
+llm_model: str = AI_MODELS.get("gpt_4o_mini")
+# --------------------------------------
 
 
 def main() -> None:
-    curr_date = datetime.now()
+    curr_date: datetime = datetime.now()
 
-    file_path = rf"{os.environ["USERDIR"]}\Documents\archi_knowledge_docs\test_q_and_a"
-    # ---------------------------------------------------------------------------------
-    # questions_file_name = "Consumer_protection_law-25_questions.json"
-    # questions_file_name = "Retail_Sale_Law-20_questions.json"
-    # questions_file_name = "Question_16_04_Неустойка.json"
-    # questions_file_name = "Questions_16_04.json"
-    # questions_file_name = "Question_20240731_Неустойка.json"
-    questions_file_name = "Questions_1_percent_rule.json"
+    input_file_path: str = rf"{os.environ["USERDIR"]}\Documents\archi_knowledge_docs\test_q_and_a\curr_Q-file"
+    output_file_path: str = rf"{os.environ["USERDIR"]}\Documents\archi_knowledge_docs\test_q_and_a"
+    q_file_name: list[str] = os.listdir(input_file_path)
 
-    topic = questions_file_name.split('.')[0]
+    if len(q_file_name) > 1:
+        raise ValueError(f"Expecting only 1 file at this location, but found - {len(q_file_name)}")
 
+    full_q_file_path = os.path.join(input_file_path, q_file_name[0])
+    topic = q_file_name[0].split('.')[0]
     ans_file_name = f"Answers_to_{topic}_{curr_date.strftime("%Y%m%d")}.txt"
     # ---------------------------------------------------------------------------------
+    PROMPT = PromptTemplate(template=sys_prompt_ru_1, input_variables=["context", "question"])
 
-    with open(fr"{file_path}\{questions_file_name}", 'r', encoding=WIN_ENCODING_RU) as fp:
+    llm = ChatOpenAI(
+        api_key=openai_api_key,
+        temperature=0.1,
+        model=llm_model
+    )
+
+    # create the chain to answer questions
+    qa_chain = RetrievalQA.from_chain_type(
+        llm=llm,
+        chain_type="stuff",
+        retriever=dp.retriever,
+        return_source_documents=True,
+        chain_type_kwargs={"prompt": PROMPT}
+    )
+    # ---------------------------------------------------------------------------------
+
+    with open(fr"{full_q_file_path}", 'r', encoding=WIN_ENCODING_RU) as fp:
         data = json.load(fp)
 
     questions = data.get("Questions")
-    # pprint(questions)
 
-    with open(fr"{file_path}\{ans_file_name}", 'w', encoding=WIN_ENCODING_RU) as fp:
+    with open(fr"{output_file_path}\{ans_file_name}", 'w', encoding=WIN_ENCODING_RU) as fp:
         fp.write(f"    DATE:\t{curr_date.strftime("%Y-%m-%d %H:%M")}\n")
         fp.write(f"ENCODING:\t{WIN_ENCODING_RU}\n")
-        fp.write(f"  Q-FILE:\t{questions_file_name}\n")
-        fp.write(f"  PROMPT:\n{sys_prompt_en_1}")
+        fp.write(f"  Q-FILE:\t{q_file_name[0]}\n")
+        fp.write(f"  PROMPT:\n{sys_prompt_ru_1}")
         fp.write(f"\n{'#'*70}\n")
 
+        print(f"{'*'*3} Started processing questions...")
         for idx, question in enumerate(questions, start=1):
-            fp.writelines([f"Q{idx} |\n", "----\n",  f"{question}\n\n", "Answer:\n"])
-            answer = dp.qa_chain(question)
-            fp.write(answer.get("result"))
+            fp.writelines([f"Q{idx} - \n", "----\n",  f"{question}\n\n", "Answer:\n"])
+            response = qa_chain(question)
+            fp.write(response.get("result"))
             fp.write(f"\n\n {'-'*70} \n")
-            print(f"Processed Q{idx} -> {question}")
+            print(f"\tProcessed Q{idx} -> {question}")
         # for end
+        print(f"{'*' * 3} Finished processing questions {'*' * 3}")
     # with end
 
 
