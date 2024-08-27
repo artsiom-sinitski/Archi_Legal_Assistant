@@ -3,6 +3,9 @@ import sys
 from pathlib import Path
 sys.path.append(rf"{Path(__file__).parent}")
 
+__import__('pysqlite3')
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
 # from pprint import pprint
 import streamlit as st
 
