@@ -3,9 +3,10 @@ import streamlit as st
 
 from openai import OpenAI
 
-# import sys
-# from pathlib import Path
-# sys.path.append(rf"{Path(__file__).parent}\src")
+import sys
+from pathlib import Path
+# sys.path.append(rf"{Path(__file__).parent}\archi")
+# sys.path.append(rf"{Path(__file__).parent}\archi\src")
 # print(f"Path --> {Path(__file__).parent}")
 
 from langchain_openai import ChatOpenAI
@@ -38,7 +39,7 @@ st.set_page_config(page_title=PAGE_TITLE, page_icon=PAGE_ICON)
 header = st.columns(2)
 # ------------------------
 header_tile0 = header[0].container(height=None, border=False)
-header_tile0.image("content/img/attorney3.jpg", width=260)
+header_tile0.image("archi/content/img/attorney3.jpg", width=260)
 # ------------------------
 header_tile1 = header[1].container(height=None, border=False)
 
