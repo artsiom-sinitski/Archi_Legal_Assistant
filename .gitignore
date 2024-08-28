@@ -1,4 +1,5 @@
+__pycache__
 .idea/
-archi/.streamlit/secrets.toml
+.streamlit/secrets.toml
 archi/content/knowledge_docs
 *.docx
