@@ -30,32 +30,29 @@ PAGE_TITLE: str = "Virtual Legal Assistant"
 # ==== Controls setup =========================================
 
 st.set_page_config(page_title=PAGE_TITLE, page_icon=PAGE_ICON)
-# ch_inp = st.chat_input(key="chatInput_1", disabled=True)
-sh_inp = st.chat_input(key="MaincChatInput", disabled=True)
 # ==== End Controls setup =====================================
 
-header = st.columns(2)
-# ------------------------
-header_tile0 = header[0].container(height=None, border=False)
-header_tile0.image("archi/content/img/attorney3.jpg", width=260)
-# ------------------------
-header_tile1 = header[1].container(height=None, border=False)
+with st.sidebar:
+    selected_topic: tuple[str] = st.selectbox("Выбранная тема консультации:",
+        ("...", "Расчёт неустойки", "Ответ на вопрос", "Сделать справку", "Резюмировать", "Перевести на другой язык"),
+        label_visibility="visible",
+        placeholder="..."
+    ),
+    header = st.columns(1)
+    # ------------------------
+    header_tile0 = header[0].container(height=None, border=True)
+    header_tile0.image("archi/content/img/attorney3.jpg", width=230)
+    # ------------------------
+    # header_tile1 = header[1].container(height=None, border=False)
+    header_tile0.write("💬 Здравствуйте! Меня зовут Арчия")
+    header_tile0.write("💬 Я - виртуальный юрист, который может:")
+    header_tile0.markdown("* ответить на Ваши вопросы")
+    header_tile0.markdown("* предоставить нужные бланки")
+    header_tile0.markdown("* дать понятные пошаговые инструкции")
+    # st.divider()
+# end with
 
-header_tile1.write("💬 Здравствуйте! Меня зовут Арчия")
-header_tile1.write("💬 Я - виртуальный юрист, который может:")
-# header_tile1.divider()
-header_tile1.markdown("* ответить на Ваши вопросы")
-header_tile1.markdown("* предоставить нужные бланки")
-header_tile1.markdown("* дать понятные пошаговые инструкции")
-
-st.divider()
-
-# with st.sidebar:
-#     topic: tuple[str] = st.selectbox(
-#         "Выберите тему вопроса:",
-#         ("Расчитай неустойку", "Ответь на вопрос", "Сделай справку", "Резюмируй", "Переведи")
-#     ),
-
+# with st.sidebar
     # pass
     # openai_api_key = st.text_input("OpenAI API Key", key="chatbot_api_key", type="password")
     # "[Get an OpenAI API key](https://platform.openai.com/account/api-keys)"
@@ -63,35 +60,22 @@ st.divider()
     # "[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/streamlit/llm-examples?quickstart=1)"
 # with end
 
-with st.container():
-    # st.write('test')
-    topic: tuple[str] = st.selectbox("Выберите тему вопроса:",
-            ("...", "Расчитай неустойку", "Ответь на вопрос", "Сделай справку", "Резюмируй", "Переведи"),
-            label_visibility="visible",
-            placeholder="..."
-        ),
-    # md_txt: str = f"**Выбранная тема:**\t{topic[0]}"
-    # st.markdown(md_txt)
-# with end
-st.divider()
-
-if topic != "...":          # enable chat input widget only if topic selected
-    ch_inp = st.session_state["MaincChatInput"]  #(disabled=False)
-    st.write(ch_inp)
-    # st.session_state['1'](disabled=False)
+                       
+if "..." in selected_topic[0]:      # enable chat input widget only if topic selected
+    chat_prompt = st.chat_input("Сначала выберите тему консультации...", key="DisabledChatPrompt", disabled=True)
+else:
+    chat_prompt = st.chat_input("Пишите тут...", key="EnabledChatPrompt", disabled=False)
 
     if "messages" not in st.session_state:
-        st.session_state["messages"] = [{"role": "assistant", "content": "Какой Ваш конкретный вопрос?"}]
+        st.session_state["messages"] = [{"role": "assistant", "content": f'Какова Ваша ситуация (вопрос) по теме "{selected_topic[0]}"?'}]
 
     for msg in st.session_state.messages:
         st.chat_message(msg["role"]).write(msg["content"])
 
-    if user_input := ch_inp:
+    if user_input := chat_prompt:
         try:
             openai_api_key = st.secrets.api_credentials.api_key
         except (KeyError, AttributeError) as err:
-            # pass
-            # st.error(st.session_state.locale.empty_api_handler)
             logging.info(str(err))
 
         if not openai_api_key:
