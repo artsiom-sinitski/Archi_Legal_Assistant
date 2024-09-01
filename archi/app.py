@@ -14,12 +14,12 @@ from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 
-from src.constants import AI_MODELS
+import src.constants as cnst
 import src.docs_processor as dp
-from src.prompts import sys_prompt_ru_1
+
 
 openai_api_key = None
-llm_model: str = AI_MODELS.get("gpt_4o_mini")
+llm_model: str = cnst.AI_MODELS.get("gpt_4o_mini")
 
 PAGE_ICON: str = "⚖️"
 PAGE_TITLE: str = "Virtual Legal Assistant"
@@ -61,10 +61,16 @@ with st.sidebar:
 # with end
 
                        
-if "..." in selected_topic[0]:      # enable chat input widget only if topic selected
-    chat_prompt = st.chat_input("Сначала выберите тему консультации...", key="DisabledChatPrompt", disabled=True)
+if "..." in selected_topic[0]:      # enable chat input widget only if a topic selected
+    chat_prompt_widget = st.chat_input("Сначала выберите тему консультации...", key="DisabledChatPrompt", disabled=True)
+    st.empty()
 else:
-    chat_prompt = st.chat_input("Пишите тут...", key="EnabledChatPrompt", disabled=False)
+    chat_prompt_widget = st.chat_input("Пишите тут...", key="EnabledChatPrompt", disabled=False)
+
+    # with st.container():
+    #     st.button("Голосовой Ввод")
+    #     st.button("Сохранить Консультацию")
+    #     st.button("Загрузить Файл...")
 
     if "messages" not in st.session_state:
         st.session_state["messages"] = [{"role": "assistant", "content": f'Какова Ваша ситуация (вопрос) по теме "{selected_topic[0]}"?'}]
@@ -72,7 +78,7 @@ else:
     for msg in st.session_state.messages:
         st.chat_message(msg["role"]).write(msg["content"])
 
-    if user_input := chat_prompt:
+    if user_input := chat_prompt_widget:
         try:
             openai_api_key = st.secrets.api_credentials.api_key
         except (KeyError, AttributeError) as err:
@@ -83,7 +89,18 @@ else:
             st.stop()
 
         client = OpenAI(api_key=openai_api_key)
-        PROMPT = PromptTemplate(template=sys_prompt_ru_1, input_variables=["context", "question"])
+
+        match(selected_topic[0]):
+            case "Расчёт неустойки": pmpt_template = cnst.topic_2_prompt_mapping.get("penalty_prompt")
+            case "Ответ на вопрос": pmpt_template = cnst.topic_2_prompt_mapping.get("question_prompt")
+            case _: pmpt_template = cnst.topic_2_prompt_mapping.get("question_prompt")
+
+        # st.write()
+        
+        PROMPT = PromptTemplate(
+            template=pmpt_template,
+            input_variables=["context", "question"]
+        )
 
         llm = ChatOpenAI(
             api_key=openai_api_key,
