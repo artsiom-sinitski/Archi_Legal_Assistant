@@ -32,9 +32,16 @@ PAGE_TITLE: str = "Virtual Legal Assistant"
 st.set_page_config(page_title=PAGE_TITLE, page_icon=PAGE_ICON)
 # ==== End Controls setup =====================================
 
+empty_opt: str = "..."
+penalty_opt: str = "Некачественный товар"
+question_opt: str = "Покупка товара"
+merch_return_opt: str = "Возврат товара"
+# resume_opt: str = "Резюмировать"
+# translate_opt: str = "Перевести на другой язык"
+
 with st.sidebar:
     selected_topic: tuple[str] = st.selectbox("Выбранная тема консультации:",
-        ("...", "Расчёт неустойки", "Ответ на вопрос", "Сделать справку", "Резюмировать", "Перевести на другой язык"),
+        (empty_opt, penalty_opt, question_opt, merch_return_opt),
         label_visibility="visible",
         placeholder="..."
     ),
@@ -61,7 +68,7 @@ with st.sidebar:
 # with end
 
                        
-if "..." in selected_topic[0]:      # enable chat input widget only if a topic selected
+if empty_opt in selected_topic[0]:      # enable chat input widget only if a topic selected
     chat_prompt_widget = st.chat_input("Сначала выберите тему консультации...", key="DisabledChatPrompt", disabled=True)
     st.empty()
 else:
@@ -90,13 +97,19 @@ else:
 
         client = OpenAI(api_key=openai_api_key)
 
-        match(selected_topic[0]):
-            case "Расчёт неустойки": pmpt_template = cnst.topic_2_prompt_mapping.get("penalty_prompt")
-            case "Ответ на вопрос": pmpt_template = cnst.topic_2_prompt_mapping.get("question_prompt")
-            case _: pmpt_template = cnst.topic_2_prompt_mapping.get("question_prompt")
+        # match(selected_topic[0]):
+        #     case penalty_opt: pmpt_template = cnst.topic_2_prompt_mapping.get("penalty_prompt")
+        #     case question_opt: pmpt_template = cnst.topic_2_prompt_mapping.get("question_prompt")
+        #     case _: pmpt_template = cnst.topic_2_prompt_mapping.get("question_prompt")
+        if penalty_opt == selected_topic[0]:
+            pmpt_template = cnst.topic_2_prompt_mapping.get("penalty_prompt")
+        elif question_opt == selected_topic[0]:
+            pmpt_template = cnst.topic_2_prompt_mapping.get("question_prompt")
+        elif merch_return_opt == selected_topic[0]:
+            pmpt_template = cnst.topic_2_prompt_mapping.get("merch_return_prompt")
+        else:
+            pmpt_template = cnst.topic_2_prompt_mapping.get("question_prompt")
 
-        # st.write()
-        
         PROMPT = PromptTemplate(
             template=pmpt_template,
             input_variables=["context", "question"]
