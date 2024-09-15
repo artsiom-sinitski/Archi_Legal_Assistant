@@ -3,9 +3,10 @@ import streamlit as st
 
 from openai import OpenAI
 
-# import sys
-# from pathlib import Path
-# sys.path.append(rf"{Path(__file__).parent}\src")
+import sys
+from pathlib import Path
+# sys.path.append(rf"{Path(__file__).parent}\archi")
+# sys.path.append(rf"{Path(__file__).parent}\archi\src")
 # print(f"Path --> {Path(__file__).parent}")
 
 from langchain_openai import ChatOpenAI
@@ -13,13 +14,12 @@ from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 
-from src.constants import AI_MODELS
+import src.constants as cnst
 import src.docs_processor as dp
-from src.prompts import sys_prompt_ru_1
+
 
 openai_api_key = None
-# llm_model: str = AI_MODELS.get("gpt_4o_mini")
-llm_model: str = AI_MODELS.get("gpt_4o1")
+llm_model: str = cnst.AI_MODELS.get("gpt_4o_mini")
 
 PAGE_ICON: str = "⚖️"
 PAGE_TITLE: str = "Virtual Legal Assistant"
@@ -27,77 +27,120 @@ PAGE_TITLE: str = "Virtual Legal Assistant"
 # LANG_EN: str = "EN"
 # LANG_RU: str = "RU"dir
 
-st.set_page_config(page_title=PAGE_TITLE, page_icon=PAGE_ICON)
+# ==== Controls setup =========================================
 
-# with st.sidebar:
-#     pass
+st.set_page_config(page_title=PAGE_TITLE, page_icon=PAGE_ICON)
+# ==== End Controls setup =====================================
+
+empty_opt: str = "..."
+penalty_opt: str = "Некачественный товар"
+question_opt: str = "Покупка товара"
+merch_return_opt: str = "Возврат товара"
+# resume_opt: str = "Резюмировать"
+# translate_opt: str = "Перевести на другой язык"
+
+with st.sidebar:
+    selected_topic: tuple[str] = st.selectbox("Выбранная тема консультации:",
+        (empty_opt, penalty_opt, question_opt, merch_return_opt),
+        label_visibility="visible",
+        placeholder="..."
+    ),
+    header = st.columns(1)
+    # ------------------------
+    header_tile0 = header[0].container(height=None, border=True)
+    header_tile0.image("archi/content/img/attorney3.jpg", width=230)
+    # ------------------------
+    # header_tile1 = header[1].container(height=None, border=False)
+    header_tile0.write("💬 Здравствуйте! Меня зовут Арчия")
+    header_tile0.write("💬 Я - виртуальный юрист, который может:")
+    header_tile0.markdown("* ответить на Ваши вопросы")
+    header_tile0.markdown("* предоставить нужные бланки")
+    header_tile0.markdown("* дать понятные пошаговые инструкции")
+    # st.divider()
+# end with
+
+# with st.sidebar
+    # pass
     # openai_api_key = st.text_input("OpenAI API Key", key="chatbot_api_key", type="password")
     # "[Get an OpenAI API key](https://platform.openai.com/account/api-keys)"
     # "[View the source code](https://github.com/streamlit/llm-examples/blob/main/Chatbot.py)"
     # "[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/streamlit/llm-examples?quickstart=1)"
+# with end
 
-header = st.columns(2)
-# ------------------------
-header_tile0 = header[0].container(height=None, border=False)
-header_tile0.image("content/img/attorney3.jpg", width=260)
-# ------------------------
-header_tile1 = header[1].container(height=None, border=False)
+                       
+if empty_opt in selected_topic[0]:      # enable chat input widget only if a topic selected
+    chat_prompt_widget = st.chat_input("Сначала выберите тему консультации...", key="DisabledChatPrompt", disabled=True)
+    st.empty()
+else:
+    chat_prompt_widget = st.chat_input("Пишите тут...", key="EnabledChatPrompt", disabled=False)
 
-header_tile1.write("💬 Арчия к Вашим услугам! Она может:")
-header_tile1.divider()
-header_tile1.markdown("* ответить на Ваши вопросы")
-header_tile1.markdown("* предоставить нужные бланки")
-header_tile1.markdown("* дать понятные пошаговые инструкции")
+    # with st.container():
+    #     st.button("Голосовой Ввод")
+    #     st.button("Сохранить Консультацию")
+    #     st.button("Загрузить Файл...")
 
-st.divider()
+    if "messages" not in st.session_state:
+        st.session_state["messages"] = [{"role": "assistant", "content": f'Какова Ваша ситуация (вопрос) по теме "{selected_topic[0]}"?'}]
 
-if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "assistant", "content": "Чем я могу Вам помочь?"}]
+    for msg in st.session_state.messages:
+        st.chat_message(msg["role"]).write(msg["content"])
 
-for msg in st.session_state.messages:
-    st.chat_message(msg["role"]).write(msg["content"])
+    if user_input := chat_prompt_widget:
+        try:
+            openai_api_key = st.secrets.api_credentials.api_key
+        except (KeyError, AttributeError) as err:
+            logging.info(str(err))
 
-if user_input := st.chat_input():
-    try:
-        openai_api_key = st.secrets.api_credentials.api_key
-    except (KeyError, AttributeError) as err:
-        # pass
-        # st.error(st.session_state.locale.empty_api_handler)
-        logging.info(str(err))
+        if not openai_api_key:
+            st.info("Your API key is missing or invalid!")
+            st.stop()
 
-    if not openai_api_key:
-        st.info("Your API key is missing or invalid!")
-        st.stop()
+        client = OpenAI(api_key=openai_api_key)
 
-    client = OpenAI(api_key=openai_api_key)
-    PROMPT = PromptTemplate(template=sys_prompt_ru_1, input_variables=["context", "question"])
+        # match(selected_topic[0]):
+        #     case penalty_opt: pmpt_template = cnst.topic_2_prompt_mapping.get("penalty_prompt")
+        #     case question_opt: pmpt_template = cnst.topic_2_prompt_mapping.get("question_prompt")
+        #     case _: pmpt_template = cnst.topic_2_prompt_mapping.get("question_prompt")
+        if penalty_opt == selected_topic[0]:
+            pmpt_template = cnst.topic_2_prompt_mapping.get("penalty_prompt")
+        elif question_opt == selected_topic[0]:
+            pmpt_template = cnst.topic_2_prompt_mapping.get("question_prompt")
+        elif merch_return_opt == selected_topic[0]:
+            pmpt_template = cnst.topic_2_prompt_mapping.get("merch_return_prompt")
+        else:
+            pmpt_template = cnst.topic_2_prompt_mapping.get("question_prompt")
 
-    llm = ChatOpenAI(
-        api_key=openai_api_key,
-        temperature=0,
-        model=llm_model
-    )
+        PROMPT = PromptTemplate(
+            template=pmpt_template,
+            input_variables=["context", "question"]
+        )
 
-    # create the chain to answer questions
-    qa_chain = RetrievalQA.from_chain_type(
-        llm=llm,
-        chain_type="stuff",
-        retriever=dp.get_vector_db_retriever(),
-        return_source_documents=True,
-        chain_type_kwargs={"prompt": PROMPT}
-    )
+        llm = ChatOpenAI(
+            api_key=openai_api_key,
+            temperature=0,
+            model=llm_model
+        )
 
-    st.session_state.messages.append({"role": "user", "content": user_input})
-    st.chat_message("user").write(user_input)
+        # create the chain to answer questions
+        qa_chain = RetrievalQA.from_chain_type(
+            llm=llm,
+            chain_type="stuff",
+            retriever=dp.get_vector_db_retriever(),
+            return_source_documents=True,
+            chain_type_kwargs={"prompt": PROMPT}
+        )
 
-    # response = client.chat.completions.create(model=llm_model, messages=st.session_state.messages)
-    # assistant_response = response.choices[0].message.content
+        st.session_state.messages.append({"role": "user", "content": user_input})
+        st.chat_message("user").write(user_input)
 
-    response = qa_chain(user_input)
-    assistant_response = response.get("result")
+        # response = client.chat.completions.create(model=llm_model, messages=st.session_state.messages)
+        # assistant_response = response.choices[0].message.content
 
-    st.session_state.messages.append({"role": "assistant", "content": assistant_response})
-    st.chat_message("assistant").write(assistant_response)
+        response = qa_chain(user_input)
+        assistant_response = response.get("result")
+
+        st.session_state.messages.append({"role": "assistant", "content": assistant_response})
+        st.chat_message("assistant").write(assistant_response)
 
 # if __name__ == "__main__":
 #     pass
