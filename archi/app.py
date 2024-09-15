@@ -19,7 +19,8 @@ import src.docs_processor as dp
 
 
 openai_api_key = None
-llm_model: str = cnst.AI_MODELS.get("gpt_4o_mini")
+# llm_model: str = cnst.AI_MODELS.get("gpt_4o_mini")
+llm_model: str = cnst.AI_MODELS.get("gpt_o1")
 
 PAGE_ICON: str = "⚖️"
 PAGE_TITLE: str = "Virtual Legal Assistant"
