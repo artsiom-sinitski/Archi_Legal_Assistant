@@ -1,13 +1,11 @@
 import os
 import sys
 import json
-# from pprint import pprint
 from datetime import datetime
 
 from pathlib import Path
 sys.path.append(rf"{Path(__file__).parent.parent}")
 
-# from openai import OpenAI
 from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
@@ -18,7 +16,7 @@ import src.docs_processor as dp
 
 # --------------------------------------
 openai_api_key = os.environ["OPENAI_API_KEY"]
-llm_model: str = AI_MODELS.get("gpt_4o_mini")
+llm_model: str = AI_MODELS.get("gpt_o1")
 # --------------------------------------
 
 
@@ -40,7 +38,7 @@ def main() -> None:
 
     llm = ChatOpenAI(
         api_key=openai_api_key,
-        temperature=0.1,
+        temperature=0,
         model=llm_model
     )
 

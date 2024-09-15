@@ -18,7 +18,8 @@ import src.docs_processor as dp
 from src.prompts import sys_prompt_ru_1
 
 openai_api_key = None
-llm_model: str = AI_MODELS.get("gpt_4o_mini")
+# llm_model: str = AI_MODELS.get("gpt_4o_mini")
+llm_model: str = AI_MODELS.get("gpt_4o1")
 
 PAGE_ICON: str = "⚖️"
 PAGE_TITLE: str = "Virtual Legal Assistant"
