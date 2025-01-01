@@ -1,5 +1,11 @@
+/venv
 __pycache__
-.idea/
-.streamlit/secrets.toml
-archi/content/knowledge_docs
-*.docx
+archi/.streamlit/secrets.toml
+archi/.devcontainer
+.idea
+
+
+
+
+
+
