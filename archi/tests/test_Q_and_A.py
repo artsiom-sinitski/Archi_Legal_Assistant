@@ -10,12 +10,13 @@ from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 
-from src.constants import (WIN_ENCODING_RU, AI_MODELS)
-from src.prompts import sys_prompt_ru_1
-import src.docs_processor as dp
+# added 'archi' below
+from archi.src.constants import (WIN_ENCODING_RU, AI_MODELS)
+from archi.src.prompts import sys_prompt_to_calculate_penalty_ru
+import archi.src.docs_processor as dp
 
 # --------------------------------------
-openai_api_key = os.environ["OPENAI_API_KEY"]
+openai_api_key: str = os.environ["OPENAI_API_KEY"]
 llm_model: str = AI_MODELS.get("gpt_o1")
 # --------------------------------------
 
@@ -23,18 +24,19 @@ llm_model: str = AI_MODELS.get("gpt_o1")
 def main() -> None:
     curr_date: datetime = datetime.now()
 
-    input_file_path: str = rf"{os.environ["USERDIR"]}\Documents\archi_knowledge_docs\test_q_and_a\curr_Q-file"
-    output_file_path: str = rf"{os.environ["USERDIR"]}\Documents\archi_knowledge_docs\test_q_and_a"
+    input_file_path: str = rf"{os.environ['USERDIR']}\Documents\archi_knowledge_docs\test_q_and_a\curr_Q-file"
+    output_file_path: str = rf"{os.environ['USERDIR']}\Documents\archi_knowledge_docs\test_q_and_a"
     q_file_name: list[str] = os.listdir(input_file_path)
 
     if len(q_file_name) > 1:
-        raise ValueError(f"Expecting only 1 file at this location, but found - {len(q_file_name)}")
+        raise ValueError(f"Only 1 file expected at this location, but found -> {len(q_file_name)}")
 
     full_q_file_path = os.path.join(input_file_path, q_file_name[0])
     topic = q_file_name[0].split('.')[0]
-    ans_file_name = f"Answers_to_{topic}_{curr_date.strftime("%Y%m%d")}.txt"
+    ans_file_name = f"Answers_to_{topic}_{curr_date.strftime('%Y%m%d')}.txt"
     # ---------------------------------------------------------------------------------
-    PROMPT = PromptTemplate(template=sys_prompt_ru_1, input_variables=["context", "question"])
+    # sys_prompt_ru_1
+    PROMPT = PromptTemplate(template=sys_prompt_to_calculate_penalty_ru, input_variables=["context", "question"])
 
     llm = ChatOpenAI(
         api_key=openai_api_key,
@@ -58,7 +60,7 @@ def main() -> None:
     questions = data.get("Questions")
 
     with open(fr"{output_file_path}\{ans_file_name}", 'w', encoding=WIN_ENCODING_RU) as fp:
-        fp.write(f"    DATE:\t{curr_date.strftime("%Y-%m-%d %H:%M")}\n")
+        fp.write(f"    DATE:\t{curr_date.strftime('%Y-%m-%d %H:%M')}\n")
         fp.write(f"ENCODING:\t{WIN_ENCODING_RU}\n")
         fp.write(f"  Q-FILE:\t{q_file_name[0]}\n")
         fp.write(f"  PROMPT:\n{sys_prompt_ru_1}")
