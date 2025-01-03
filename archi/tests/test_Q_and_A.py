@@ -17,7 +17,7 @@ import archi.src.docs_processor as dp
 
 # --------------------------------------
 openai_api_key: str = os.environ["OPENAI_API_KEY"]
-llm_model: str = AI_MODELS.get("gpt4o1")
+llm_model: str = AI_MODELS.get("gpt4-o1")
 # --------------------------------------
 
 
@@ -29,8 +29,8 @@ def main() -> None:
 
     input_file_path: str = rf"{os.environ['USERDIR']}\Documents\archi_knowledge_docs\test_q_and_a\curr_Q-file"
     output_file_path: str = rf"{os.environ['USERDIR']}\Documents\archi_knowledge_docs\test_q_and_a"
-    q_file_name: list[str] = os.listdir(input_file_path)
 
+    q_file_name: list[str] = os.listdir(input_file_path)
     if len(q_file_name) > 1:
         raise ValueError(f"Only 1 file expected at this location, but found -> {len(q_file_name)}")
 
@@ -62,11 +62,17 @@ def main() -> None:
 
     questions = data.get("Questions")
 
+    # list documents used to acquire the knowledge
+    files: list[str] = os.listdir(dp.knowledge_docs_path)
+    files = sorted([fi for fi in files if os.path.isfile(dp.knowledge_docs_path + '/' + fi)])
+
     with open(fr"{output_file_path}\{ans_file_name}", 'w', encoding="utf-8") as fp:
-        fp.write(f"    DATE:\t{curr_date.strftime('%Y-%m-%d %H:%M')}\n")
-        fp.write(f"ENCODING:\t{WIN_ENCODING_RU}\n")
-        fp.write(f"  Q-FILE:\t{q_file_name[0]}\n")
-        fp.write(f"  PROMPT:\n{sys_prompt_to_calculate_penalty_ru}")
+        fp.write(f"     DATE:\t{curr_date.strftime('%Y-%m-%d %H:%M')}\n")
+        fp.write(f" ENCODING:\t{WIN_ENCODING_RU}\n")
+        fp.write(f"   Q-FILE:\t{q_file_name[0]}\n")
+        fp.write(f"     DOCS:\t{len(files)}\n")
+        fp.writelines([f"\t - {file}\n" for file in files])
+        fp.write(f"\n   PROMPT:{sys_prompt_to_calculate_penalty_ru}")
         fp.write(f"\n{'#'*70}\n")
 
         print(f"{'*'*3} Started processing questions...")
@@ -76,7 +82,7 @@ def main() -> None:
             end_time = time.perf_counter() - start_time
             elapsed_time = time.strftime("%H:%M:%S", time.gmtime(end_time))
 
-            fp.writelines([f"Q{idx} - {elapsed_time} |\n", f"{'-'*15}\n", f"{question}\n\n", "Answer:\n"])
+            fp.writelines([f"{elapsed_time}\nQ{idx} - \n", f"{'-'*15}\n", f"{question}\n\n", "Answer:\n"])
             try:
                 fp.write(response.get("result"))
             except Exception as ex:
