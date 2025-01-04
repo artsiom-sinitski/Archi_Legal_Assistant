@@ -18,7 +18,7 @@ import archi.src.docs_processor as dp
 
 def main() -> None:
     openai_api_key: str = os.environ["OPENAI_API_KEY"]
-    llm_model: str = AI_MODELS.get("gpt4-o1")
+    llm_model: str = AI_MODELS.get("gpt-4o1-mini")
     curr_date: datetime = datetime.now()
 
     input_file_path: str = rf"{os.environ['USERDIR']}\Documents\archi_knowledge_docs\test_q_and_a\curr_Q-file"
@@ -28,11 +28,9 @@ def main() -> None:
     if len(q_file_name) > 1:
         raise ValueError(f"Only 1 file expected at this location, but found -> {len(q_file_name)}")
 
-    full_q_file_path = os.path.join(input_file_path, q_file_name[0])
-    topic = q_file_name[0].split('.')[0]
-    ans_file_name = f"Answers_to_{topic}_{curr_date.strftime('%Y%m%d')}.txt"
+    full_q_file_path: str = os.path.join(input_file_path, q_file_name[0])
+    topic: str = q_file_name[0].split('.')[0]
     # ---------------------------------------------------------------------------------
-    # sys_prompt_ru_1
     PROMPT = PromptTemplate(template=sys_prompt_to_calculate_penalty_ru, input_variables=["context", "question"])
 
     llm = ChatOpenAI(
@@ -54,7 +52,8 @@ def main() -> None:
     with open(fr"{full_q_file_path}", 'r', encoding=WIN_ENCODING_RU) as in_fp:
         data = json.load(in_fp)
 
-    questions = data.get("Questions")
+    questions: list[str] = data.get("Questions")
+    ans_file_name: str = f"Answered_{len(questions)}qs_{topic}_{curr_date.strftime('%Y%m%d')}.txt"
 
     # list documents used to acquire the knowledge
     files: list[str] = os.listdir(dp.knowledge_docs_path)
