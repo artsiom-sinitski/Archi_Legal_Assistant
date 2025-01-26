@@ -16,8 +16,6 @@ import archi.src.docs_processor as dp
 
 
 def main() -> None:
-    ans_cost: float = 0.0
-    total_ans_cost: float = 0.0
     curr_date: datetime = datetime.now()
     openai_api_key: str = os.environ["OPENAI_API_KEY"]
     # llm_model: str = consts.AI_MODELS.get(consts.GPT_4o1_PREVIEW)
@@ -65,12 +63,11 @@ def main() -> None:
     files = sorted([fi for fi in files if os.path.isfile(dp.knowledge_docs_path + '/' + fi)])
 
     # calculated number of tokens for the prompt
-    # print(f"{len(PROMPT.template) = }")
     prompt_tokens_num = prompts.calculate_tokens_num(llm_model, PROMPT.template)
     print(f"{prompt_tokens_num = }", end='\n\n')
 
-    input_tokens_rate: float = consts.model_price_catalog.get(llm_model).get(consts.INPUT_TOKENS_PRICE_1K) / 1000
-    output_tokens_rate: float = consts.model_price_catalog.get(llm_model).get(consts.OUTPUT_TOKENS_PRICE_1K) / 1000
+    input_tokens_rate: float = consts.model_price_catalog[llm_model][consts.INPUT_TOKENS_PRICE_1K] / 1000
+    output_tokens_rate: float = consts.model_price_catalog[llm_model][consts.OUTPUT_TOKENS_PRICE_1K] / 1000
 
     with open(fr"{output_file_path}\{ans_file_name}", 'w', encoding="utf-8") as out_fp:
         out_fp.write(f"DATE:\t{curr_date.strftime('%Y-%m-%d %H:%M')}\n")
@@ -110,21 +107,20 @@ def main() -> None:
             input_tokens_total_price = input_tokens_total * input_tokens_rate
             print(f"{input_tokens_total_price = }")
 
-            # print(f"{response = }")
-
-            # for r in response:
-            #     ans_element = response.get(r)
-            #     # condition below adds the dict key back to the response
-            #     # to be accounted in number of tokens calc logic
-            #     if isinstance(ans_element, str):
-            #         ans_element = r +": " + ans_element
-            #     elif isinstance(ans_element, list):
-            #         ans_element.append(r)
-            #     # print(f"{r} -> {ans_element = }")
-            #     num_tokens = prompts.calculate_tokens_num(llm_model, ans_element)
-            #     output_tokens_total += num_tokens
-            #     print(f"{r}::{len(ans_element) = }::{num_tokens = }")
-            # # for end
+            for r in response:
+                ans_element = response.get(r)
+                # condition below adds the dict key back to the response
+                # to be accounted in number of tokens calc logic
+                if isinstance(ans_element, str):
+                    ans_element = r +": " + ans_element
+                elif isinstance(ans_element, list):
+                    ans_element.append(r)
+                # print(f"{r} -> {ans_element = }")
+                num_tokens = prompts.calculate_tokens_num(llm_model, ans_element)
+                output_tokens_total += num_tokens
+                print(f"{r}::{len(ans_element) = }::{num_tokens = }")
+            # for end
+            print(f"{output_tokens_total = }")
 
             output_tokens_total = prompts.calculate_tokens_num(llm_model, response)
             print(f"{output_tokens_total = }")
