@@ -1,3 +1,20 @@
+import tiktoken    # BPE tokenizer for OpenAI models
+
+from langchain.prompts import (
+    PromptTemplate, FewShotPromptTemplate
+)
+
+# ===== Function Definitions ===================================
+
+def calculate_tokens_num(llm_model: str, input_text: str) -> int:
+    if not isinstance(input_text, str):
+        input_text = str(input_text)
+    encoding = tiktoken.encoding_for_model(llm_model)
+    tokens = encoding.encode(input_text)
+    return len(tokens)
+
+# ===== End Function Definitions ===============================
+
 sys_prompt_base_ru: str = """
     Tы - старший юрист (по имени Арчия), специализирующийся на законодательстве Российской Федерации о защите прав 
 потребителей. Твоя задача - ответить на соответствующие вопросы или дать исчерпывающую консультацию по решению
@@ -170,8 +187,6 @@ sys_prompt_to_calculate_penalty_ru: str = sys_prompt_base_ru +\
 {context}
 Question: {question}
 """
-
-
 
 
 # sys_prompt_en_1: str = """

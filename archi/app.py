@@ -12,15 +12,16 @@ from pathlib import Path
 from langchain_openai import ChatOpenAI
 
 from langchain.chains import RetrievalQA
-from langchain.prompts import PromptTemplate
+# from langchain.prompts import PromptTemplate
 
-import src.constants as cnst
-import src.docs_processor as dp
+from archi.src.prompts import *
+import archi.src.constants as consts
+import archi.src.docs_processor as dp
 
 
 openai_api_key = None
-# llm_model: str = cnst.AI_MODELS.get("gpt_4o_mini")
-llm_model: str = cnst.AI_MODELS.get("gpt_o1")
+# llm_model: str = consts.AI_MODELS.get("gpt_4o_mini")
+llm_model: str = consts.AI_MODELS.get("gpt_o1")
 
 PAGE_ICON: str = "⚖️"
 PAGE_TITLE: str = "Virtual Legal Assistant"
@@ -95,13 +96,13 @@ else:
         #     case question_opt: pmpt_template = cnst.topic_2_prompt_mapping.get("question_prompt")
         #     case _: pmpt_template = cnst.topic_2_prompt_mapping.get("question_prompt")
         if penalty_opt == selected_topic[0]:
-            pmpt_template = cnst.topic_2_prompt_mapping.get("penalty_prompt")
+            pmpt_template = consts.topic_2_prompt_mapping.get("penalty_prompt")
         elif question_opt == selected_topic[0]:
-            pmpt_template = cnst.topic_2_prompt_mapping.get("question_prompt")
+            pmpt_template = consts.topic_2_prompt_mapping.get("question_prompt")
         elif merch_return_opt == selected_topic[0]:
-            pmpt_template = cnst.topic_2_prompt_mapping.get("merch_return_prompt")
+            pmpt_template = consts.topic_2_prompt_mapping.get("merch_return_prompt")
         else:
-            pmpt_template = cnst.topic_2_prompt_mapping.get("question_prompt")
+            pmpt_template = consts.topic_2_prompt_mapping.get("question_prompt")
 
         PROMPT = PromptTemplate(
             template=pmpt_template,
