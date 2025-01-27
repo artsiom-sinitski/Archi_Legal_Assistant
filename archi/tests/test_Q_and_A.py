@@ -18,8 +18,10 @@ import archi.src.docs_processor as dp
 def main() -> None:
     curr_date: datetime = datetime.now()
     openai_api_key: str = os.environ["OPENAI_API_KEY"]
+
+    llm_model: str = consts.AI_MODELS.get(consts.GPT_4o1_MINI)
     # llm_model: str = consts.AI_MODELS.get(consts.GPT_4o1_PREVIEW)
-    llm_model: str = consts.AI_MODELS.get(consts.GPT_4o_MINI)
+    # llm_model: str = consts.AI_MODELS.get(consts.GPT_4o_MINI)
 
     input_file_path: str = rf"{os.environ['USERDIR']}\Documents\archi_knowledge_docs\test_q_and_a\curr_Q-file"
     output_file_path: str = rf"{os.environ['USERDIR']}\Documents\archi_knowledge_docs\test_q_and_a"
@@ -30,6 +32,15 @@ def main() -> None:
 
     full_q_file_path: str = os.path.join(input_file_path, q_file_name[0])
     topic: str = q_file_name[0].split('.')[0]
+
+    start_time: float = 0.0
+    end_time: float = 0.0
+    elapsed_time: str = ""
+    input_tokens_total: float = 0.0
+    input_tokens_total_price: float = 0.0
+    output_tokens_total: float = 0.0
+    output_tokens_total_price: float = 0.0
+    answer_grand_total_price: float = 0.0
     # ---------------------------------------------------------------------------------
     PROMPT = prompts.PromptTemplate(
         template=prompts.sys_prompt_to_calculate_penalty_ru,
@@ -80,19 +91,8 @@ def main() -> None:
         out_fp.write(f"\n{'#'*70}\n")
 
         print(f"{'*'*3} Started processing questions...")
-        start_time: float = 0.0
-        end_time: float = 0.0
-        elapsed_time: str = ""
-        input_tokens_total: float = 0.0
-        input_tokens_total_price: float = 0.0
-        output_tokens_total: float = 0.0
-        output_tokens_total_price: float = 0.0
-        answer_grand_total_price: float = 0.0
-        for idx, question in enumerate(questions, start=1):
-            response = {}
-            q_tokens_num = input_tokens_total = output_tokens_total = 0
-            input_tokens_total_price = output_tokens_total_price = answer_grand_total_price = 0
 
+        for idx, question in enumerate(questions, start=1):
             start_time = time.perf_counter()
 
             # 'response' is a dict with keys -> 'query' (str), 'result' (str), 'source_documents' (list)
@@ -107,19 +107,19 @@ def main() -> None:
             input_tokens_total_price = input_tokens_total * input_tokens_rate
             print(f"{input_tokens_total_price = }")
 
-            for r in response:
-                ans_element = response.get(r)
-                # condition below adds the dict key back to the response
-                # to be accounted in number of tokens calc logic
-                if isinstance(ans_element, str):
-                    ans_element = r +": " + ans_element
-                elif isinstance(ans_element, list):
-                    ans_element.append(r)
-                # print(f"{r} -> {ans_element = }")
-                num_tokens = prompts.calculate_tokens_num(llm_model, ans_element)
-                output_tokens_total += num_tokens
-                print(f"{r}::{len(ans_element) = }::{num_tokens = }")
-            # for end
+            # for r in response:
+            #     ans_element = response.get(r)
+            #     # condition below adds the dict key back to the response
+            #     # to be accounted in number of tokens calc logic
+            #     if isinstance(ans_element, str):
+            #         ans_element = r +": " + ans_element
+            #     elif isinstance(ans_element, list):
+            #         ans_element.append(r)
+            #     # print(f"{r} -> {ans_element = }")
+            #     num_tokens = prompts.calculate_tokens_num(llm_model, ans_element)
+            #     output_tokens_total += num_tokens
+            #     print(f"{r}::{len(ans_element) = }::{num_tokens = }")
+            # # for end
             print(f"{output_tokens_total = }")
 
             output_tokens_total = prompts.calculate_tokens_num(llm_model, response)
@@ -142,7 +142,12 @@ def main() -> None:
             except Exception as ex:
                 print(f"\t{'*'*3} {ex}")
             out_fp.write(f"\n\n{'-'*99}\n")
-            print(f"\tProcessed Q{idx} ({elapsed_time}) -> {question}")
+            print(f"\tProcessed Q{idx} (${round(answer_grand_total_price, 5)} | {elapsed_time}) -> {question}")
+
+            # reset generated & calculated values
+            response = {}
+            q_tokens_num = input_tokens_total = output_tokens_total = 0
+            input_tokens_total_price = output_tokens_total_price = answer_grand_total_price = 0
         # for end
         print(f"{'*' * 3} Finished processing questions {'*' * 3}")
     # with end

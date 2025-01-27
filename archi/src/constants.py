@@ -14,14 +14,14 @@ class LLM_Model(object):
 # class LLM_Model end
 
 # ----------------------------------------------------------------
-GPT_o1_MINI: str = "gpt-o1-mini"
+GPT_4o1_MINI: str = "o1-mini"
 GPT_4o_MINI: str = "gpt-4o-mini"
 
 AI_MODELS: dict[str, str] = {
-    "gpt-4o1-mini": "o1-mini",
+    GPT_4o1_MINI: "o1-mini",
     "gpt-4o1-preview": "o1-preview",
     "gpt-4o": "gpt-4o-2024-08-06",
-    "gpt-4o-mini": "gpt-4o-mini", # "gpt-4o-mini-2024-07-18"
+    GPT_4o_MINI: "gpt-4o-mini",
     "gpt-4": "gpt-4-32k",
     "gpt-3-turbo": "gpt-3.5-turbo-16k"
 }
@@ -32,7 +32,7 @@ CACHED_INPUT_TOKENS_PRICE_1K: str = "1k_cached_input_tokens_price"
 OUTPUT_TOKENS_PRICE_1K: str = "output_tokens_price_1k"
 # ----------------------------------------------------------------
 model_price_catalog: dict[str, dict[str, any]] = {
-    GPT_o1_MINI: {
+    GPT_4o1_MINI: {
         INPUT_TOKENS_PRICE_1K: 0.003,
         CACHED_INPUT_TOKENS_PRICE_1K: 0.0015,
         OUTPUT_TOKENS_PRICE_1K: 0.012,
