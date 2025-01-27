@@ -101,11 +101,11 @@ def main() -> None:
             # print(f"{len(question) = }")
             # print(f"{len(response['query']) = }")
             q_tokens_num = prompts.calculate_tokens_num(llm_model, question)
-            print(f"{q_tokens_num = }", end='\n\n')
+            print(f"\n\t{q_tokens_num = }")
 
             input_tokens_total = prompt_tokens_num + q_tokens_num
             input_tokens_total_price = input_tokens_total * input_tokens_rate
-            print(f"{input_tokens_total_price = }")
+            print(f"\t{input_tokens_total_price = }")
 
             # for r in response:
             #     ans_element = response.get(r)
@@ -120,16 +120,15 @@ def main() -> None:
             #     output_tokens_total += num_tokens
             #     print(f"{r}::{len(ans_element) = }::{num_tokens = }")
             # # for end
-            print(f"{output_tokens_total = }")
 
             output_tokens_total = prompts.calculate_tokens_num(llm_model, response)
-            print(f"{output_tokens_total = }")
+            print(f"\t{output_tokens_total = }")
 
             output_tokens_total_price = output_tokens_total * output_tokens_rate
-            print(f"{output_tokens_total_price = }")
+            print(f"\t{output_tokens_total_price = }")
 
             answer_grand_total_price = input_tokens_total_price + output_tokens_total_price
-            print(f"{answer_grand_total_price = }")
+            print(f"\t{answer_grand_total_price = }")
 
             end_time = time.perf_counter() - start_time
             elapsed_time = time.strftime("%H:%M:%S", time.gmtime(end_time))
@@ -142,7 +141,7 @@ def main() -> None:
             except Exception as ex:
                 print(f"\t{'*'*3} {ex}")
             out_fp.write(f"\n\n{'-'*99}\n")
-            print(f"\tProcessed Q{idx} (${round(answer_grand_total_price, 5)} | {elapsed_time}) -> {question}")
+            print(f"Processed Q{idx} (${round(answer_grand_total_price, 5)} | {elapsed_time}) -> {question}")
 
             # reset generated & calculated values
             response = {}
