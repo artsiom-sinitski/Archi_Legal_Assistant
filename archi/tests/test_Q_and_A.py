@@ -19,8 +19,8 @@ def main() -> None:
     curr_date: datetime = datetime.now()
     openai_api_key: str = os.environ["OPENAI_API_KEY"]
 
-    llm_model: str = consts.AI_MODELS.get(consts.GPT_4o3_MINI_HIGH)
-    # llm_model: str = consts.AI_MODELS.get(consts.GPT_4o1_MINI)
+    # llm_model: str = consts.AI_MODELS.get(consts.GPT_4o3_MINI_HIGH)
+    llm_model: str = consts.AI_MODELS.get(consts.GPT_4o1_MINI)
     # llm_model: str = consts.AI_MODELS.get(consts.GPT_4o1_PREVIEW)
     # llm_model: str = consts.AI_MODELS.get(consts.GPT_4o_MINI)
 
@@ -50,7 +50,7 @@ def main() -> None:
 
     llm = ChatOpenAI(
         api_key=openai_api_key,
-        temperature=0,   #0
+        temperature=0,
         model=llm_model
     )
 
@@ -62,6 +62,7 @@ def main() -> None:
         return_source_documents=True,
         chain_type_kwargs={"prompt": PROMPT}
     )
+
     # ---------------------------------------------------------------------------------
 
     with open(fr"{full_q_file_path}", 'r', encoding=consts.WIN_ENCODING_RU) as in_fp:
@@ -107,20 +108,6 @@ def main() -> None:
             input_tokens_total = prompt_tokens_num + q_tokens_num
             input_tokens_total_price = input_tokens_total * input_tokens_rate
             print(f"\t{input_tokens_total_price = }")
-
-            # for r in response:
-            #     ans_element = response.get(r)
-            #     # condition below adds the dict key back to the response
-            #     # to be accounted in number of tokens calc logic
-            #     if isinstance(ans_element, str):
-            #         ans_element = r +": " + ans_element
-            #     elif isinstance(ans_element, list):
-            #         ans_element.append(r)
-            #     # print(f"{r} -> {ans_element = }")
-            #     num_tokens = prompts.calculate_tokens_num(llm_model, ans_element)
-            #     output_tokens_total += num_tokens
-            #     print(f"{r}::{len(ans_element) = }::{num_tokens = }")
-            # # for end
 
             output_tokens_total = prompts.calculate_tokens_num(llm_model, response)
             print(f"\t{output_tokens_total = }")
