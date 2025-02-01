@@ -19,7 +19,8 @@ def main() -> None:
     curr_date: datetime = datetime.now()
     openai_api_key: str = os.environ["OPENAI_API_KEY"]
 
-    llm_model: str = consts.AI_MODELS.get(consts.GPT_4o1_MINI)
+    llm_model: str = consts.AI_MODELS.get(consts.GPT_4o3_MINI_HIGH)
+    # llm_model: str = consts.AI_MODELS.get(consts.GPT_4o1_MINI)
     # llm_model: str = consts.AI_MODELS.get(consts.GPT_4o1_PREVIEW)
     # llm_model: str = consts.AI_MODELS.get(consts.GPT_4o_MINI)
 
@@ -49,7 +50,7 @@ def main() -> None:
 
     llm = ChatOpenAI(
         api_key=openai_api_key,
-        temperature=1,   #0
+        temperature=0,   #0
         model=llm_model
     )
 

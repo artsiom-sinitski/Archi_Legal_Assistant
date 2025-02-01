@@ -7,10 +7,16 @@ from langchain.prompts import (
 # ===== Function Definitions ===================================
 
 def calculate_tokens_num(llm_model: str, input_text: str) -> int:
+    """Return the number of tokens used by a list of messages"""
     if not isinstance(input_text, str):
         input_text = str(input_text)
-    encoding = tiktoken.encoding_for_model(llm_model)
-    tokens = encoding.encode(input_text)
+    try:
+        encoding: tiktoken.Encoding = tiktoken.encoding_for_model(llm_model)
+    except KeyError:
+        encoding_algo: str = "o200k_base" #"cl100k_base"
+        print(f"{'*'*5} Warning: model not found. Using {encoding_algo} encoding.")
+        encoding = tiktoken.get_encoding(encoding_algo)
+    tokens: list[int] = encoding.encode(input_text)
     return len(tokens)
 
 # ===== End Function Definitions ===============================
