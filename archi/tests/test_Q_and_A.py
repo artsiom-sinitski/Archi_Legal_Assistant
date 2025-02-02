@@ -19,10 +19,16 @@ def main() -> None:
     curr_date: datetime = datetime.now()
     openai_api_key: str = os.environ["OPENAI_API_KEY"]
 
-    # llm_model: str = consts.AI_MODELS.get(consts.GPT_4o3_MINI_HIGH)
-    llm_model: str = consts.AI_MODELS.get(consts.GPT_4o1_MINI)
-    # llm_model: str = consts.AI_MODELS.get(consts.GPT_4o1_PREVIEW)
-    # llm_model: str = consts.AI_MODELS.get(consts.GPT_4o_MINI)
+    try:
+        model_cmd_arg: str = sys.argv[1]
+    except IndexError as err:
+        print("Provide LLM model name as a command line parameter!")
+        sys.exit(1)
+    try:
+        llm_model: str = consts.AI_MODELS[model_cmd_arg]
+    except KeyError as err:
+        print(err)
+        sys.exit(1)
 
     input_file_path: str = rf"{os.environ['USERDIR']}\Documents\archi_knowledge_docs\test_q_and_a\curr_Q-file"
     output_file_path: str = rf"{os.environ['USERDIR']}\Documents\archi_knowledge_docs\test_q_and_a"
@@ -33,15 +39,6 @@ def main() -> None:
 
     full_q_file_path: str = os.path.join(input_file_path, q_file_name[0])
     topic: str = q_file_name[0].split('.')[0]
-
-    start_time: float = 0.0
-    end_time: float = 0.0
-    elapsed_time: str = ""
-    input_tokens_total: float = 0.0
-    input_tokens_total_price: float = 0.0
-    output_tokens_total: float = 0.0
-    output_tokens_total_price: float = 0.0
-    answer_grand_total_price: float = 0.0
     # ---------------------------------------------------------------------------------
     PROMPT = prompts.PromptTemplate(
         template=prompts.sys_prompt_to_calculate_penalty_ru,
@@ -50,10 +47,9 @@ def main() -> None:
 
     llm = ChatOpenAI(
         api_key=openai_api_key,
-        temperature=0,
+        temperature=1, # 0
         model=llm_model
     )
-
     # create the chain to answer questions
     qa_chain = RetrievalQA.from_chain_type(
         llm=llm,
@@ -62,8 +58,7 @@ def main() -> None:
         return_source_documents=True,
         chain_type_kwargs={"prompt": PROMPT}
     )
-
-    # ---------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------
 
     with open(fr"{full_q_file_path}", 'r', encoding=consts.WIN_ENCODING_RU) as in_fp:
         data = json.load(in_fp)
@@ -78,10 +73,18 @@ def main() -> None:
     # calculated number of tokens for the prompt
     prompt_tokens_num = prompts.calculate_tokens_num(llm_model, PROMPT.template)
     print(f"{prompt_tokens_num = }", end='\n\n')
-
+    # -----------------------------------------------------------------------------------------------------
+    start_time: float = 0.0
+    end_time: float = 0.0
+    elapsed_time: str = ""
+    input_tokens_total: float = 0.0
+    input_tokens_total_price: float = 0.0
+    output_tokens_total: float = 0.0
+    output_tokens_total_price: float = 0.0
+    answer_grand_total_price: float = 0.0
     input_tokens_rate: float = consts.model_price_catalog[llm_model][consts.INPUT_TOKENS_PRICE_1K] / 1000
     output_tokens_rate: float = consts.model_price_catalog[llm_model][consts.OUTPUT_TOKENS_PRICE_1K] / 1000
-
+    # -----------------------------------------------------------------------------------------------------
     with open(fr"{output_file_path}\{ans_file_name}", 'w', encoding="utf-8") as out_fp:
         out_fp.write(f"DATE:\t{curr_date.strftime('%Y-%m-%d %H:%M')}\n")
         out_fp.write(f"LLM MODEL:\t{llm_model}\n")
@@ -93,11 +96,12 @@ def main() -> None:
         out_fp.write(f"\n{'#'*70}\n")
 
         print(f"{'*'*3} Started processing questions...")
+        response: dict[str, any] = {}
 
         for idx, question in enumerate(questions, start=1):
             start_time = time.perf_counter()
 
-            # 'response' is a dict with keys -> 'query' (str), 'result' (str), 'source_documents' (list)
+            # Dict 'response' has 3 keys -> {'query': str, 'result': str, 'source_documents': list}
             response = qa_chain(question)
 
             # print(f"{len(question) = }")
@@ -130,11 +134,6 @@ def main() -> None:
                 print(f"\t{'*'*3} {ex}")
             out_fp.write(f"\n\n{'-'*99}\n")
             print(f"Processed Q{idx} (${round(answer_grand_total_price, 5)} | {elapsed_time}) -> {question}")
-
-            # reset generated & calculated values
-            response = {}
-            q_tokens_num = input_tokens_total = output_tokens_total = 0
-            input_tokens_total_price = output_tokens_total_price = answer_grand_total_price = 0
         # for end
         print(f"{'*' * 3} Finished processing questions {'*' * 3}")
     # with end
