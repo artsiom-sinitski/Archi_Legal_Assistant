@@ -77,11 +77,15 @@ def main() -> None:
     start_time: float = 0.0
     end_time: float = 0.0
     elapsed_time: str = ""
+
     input_tokens_total: float = 0.0
     input_tokens_total_price: float = 0.0
+
     output_tokens_total: float = 0.0
     output_tokens_total_price: float = 0.0
+
     answer_grand_total_price: float = 0.0
+
     input_tokens_rate: float = consts.model_price_catalog[llm_model][consts.INPUT_TOKENS_PRICE_1M] / consts.ONE_MILLION
     output_tokens_rate: float = consts.model_price_catalog[llm_model][consts.OUTPUT_TOKENS_PRICE_1M] / consts.ONE_MILLION
     # -----------------------------------------------------------------------------------------------------
