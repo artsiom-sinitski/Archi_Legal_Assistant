@@ -82,8 +82,8 @@ def main() -> None:
     output_tokens_total: float = 0.0
     output_tokens_total_price: float = 0.0
     answer_grand_total_price: float = 0.0
-    input_tokens_rate: float = consts.model_price_catalog[llm_model][consts.INPUT_TOKENS_PRICE_1K] / 1000
-    output_tokens_rate: float = consts.model_price_catalog[llm_model][consts.OUTPUT_TOKENS_PRICE_1K] / 1000
+    input_tokens_rate: float = consts.model_price_catalog[llm_model][consts.INPUT_TOKENS_PRICE_1M] / consts.ONE_MILLION
+    output_tokens_rate: float = consts.model_price_catalog[llm_model][consts.OUTPUT_TOKENS_PRICE_1M] / consts.ONE_MILLION
     # -----------------------------------------------------------------------------------------------------
     with open(fr"{output_file_path}\{ans_file_name}", 'w', encoding="utf-8") as out_fp:
         out_fp.write(f"DATE:\t{curr_date.strftime('%Y-%m-%d %H:%M')}\n")

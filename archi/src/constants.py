@@ -16,14 +16,17 @@ class LLM_Model(object):
 # ----------------------------------------------------------------
 GPT_4o3_MINI: str = "o3-mini"
 GPT_4o3_MINI_HIGH: str = "o3-mini-high"
+
+GPT_4o1: str = "o1"
 GPT_4o1_MINI: str = "o1-mini"
+
+GPT_4o: str = "gpt-4o"
 GPT_4o_MINI: str = "gpt-4o-mini"
 
 AI_MODELS: dict[str, str] = {
     GPT_4o3_MINI_HIGH: "o3-mini-high",
     GPT_4o3_MINI: "o3-mini",
     GPT_4o1_MINI: "o1-mini",
-    "gpt-4o1-preview": "o1-preview",
     "gpt-4o": "gpt-4o-2024-08-06",
     GPT_4o_MINI: "gpt-4o-mini",
     "gpt-4": "gpt-4-32k",
@@ -31,45 +34,42 @@ AI_MODELS: dict[str, str] = {
 }
 
 # ----------------------------------------------------------------
-INPUT_TOKENS_PRICE_1K: str = "input_tokens_price_1k"
-CACHED_INPUT_TOKENS_PRICE_1K: str = "1k_cached_input_tokens_price"
-OUTPUT_TOKENS_PRICE_1K: str = "output_tokens_price_1k"
+ONE_MILLION: int = 1_000_000
+INPUT_TOKENS_PRICE_1M: str = "input_tokens_price_1m"
+CACHED_INPUT_TOKENS_PRICE_1M: str = "cached_input_tokens_price_1m"
+OUTPUT_TOKENS_PRICE_1M: str = "output_tokens_price_1m"
 # ----------------------------------------------------------------
-model_price_catalog: dict[str, dict[str, any]] = {
+# prices are per 1 million tokens in USD ($)
+model_price_catalog: dict[str, dict[str, float]] = {
     GPT_4o3_MINI_HIGH: {
-        INPUT_TOKENS_PRICE_1K: 0.0011,
-        CACHED_INPUT_TOKENS_PRICE_1K: 0.00055,
-        OUTPUT_TOKENS_PRICE_1K: 0.0044,
+        INPUT_TOKENS_PRICE_1M: 1.1,
+        CACHED_INPUT_TOKENS_PRICE_1M: 0.55,
+        OUTPUT_TOKENS_PRICE_1M: 4.4,
     },
     GPT_4o3_MINI: {
-        INPUT_TOKENS_PRICE_1K: 0.0011,
-        CACHED_INPUT_TOKENS_PRICE_1K: 0.00055,
-        OUTPUT_TOKENS_PRICE_1K: 0.0044,
+        INPUT_TOKENS_PRICE_1M: 1.1,
+        CACHED_INPUT_TOKENS_PRICE_1M: 0.55,
+        OUTPUT_TOKENS_PRICE_1M: 4.4,
     },
     GPT_4o1_MINI: {
-        INPUT_TOKENS_PRICE_1K: 0.003,
-        CACHED_INPUT_TOKENS_PRICE_1K: 0.0015,
-        OUTPUT_TOKENS_PRICE_1K: 0.012,
+        INPUT_TOKENS_PRICE_1M: 1.1,
+        CACHED_INPUT_TOKENS_PRICE_1M: 0.55,
+        OUTPUT_TOKENS_PRICE_1M: 4.4,
     },
-    "gpt-o1-preview": {
-        INPUT_TOKENS_PRICE_1K: 0.015,
-        CACHED_INPUT_TOKENS_PRICE_1K: 0.0075,
-        OUTPUT_TOKENS_PRICE_1K: 0.06,
-    },
-    "gpt-o1": {
-        INPUT_TOKENS_PRICE_1K: 0.015,
-        CACHED_INPUT_TOKENS_PRICE_1K: 0.0075,
-        OUTPUT_TOKENS_PRICE_1K: 0.06,
+    GPT_4o1: {
+        INPUT_TOKENS_PRICE_1M: 15,
+        CACHED_INPUT_TOKENS_PRICE_1M: 7.5,
+        OUTPUT_TOKENS_PRICE_1M: 60,
     },
     GPT_4o_MINI: {
-        INPUT_TOKENS_PRICE_1K: 0.00015,
-        CACHED_INPUT_TOKENS_PRICE_1K: 0.000075,
-        OUTPUT_TOKENS_PRICE_1K: 0.0006,
+        INPUT_TOKENS_PRICE_1M: 0.15,
+        CACHED_INPUT_TOKENS_PRICE_1M: 0.075,
+        OUTPUT_TOKENS_PRICE_1M: 0.6,
     },
-    "gpt-4o": {
-        INPUT_TOKENS_PRICE_1K: 0.0025,
-        CACHED_INPUT_TOKENS_PRICE_1K: 0.00125,
-        OUTPUT_TOKENS_PRICE_1K: 0.01,
+    GPT_4o: {
+        INPUT_TOKENS_PRICE_1M: 2.5,
+        CACHED_INPUT_TOKENS_PRICE_1M: 1.25,
+        OUTPUT_TOKENS_PRICE_1M: 10,
     }
 }
 
