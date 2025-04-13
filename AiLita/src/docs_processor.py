@@ -33,7 +33,7 @@ except (KeyError, AttributeError) as err:
     # print(f"{'*' * 5} {str(err)}")
     user_dir = os.environ["USERDIR"]
 
-knowledge_docs_path: str = rf"{user_dir}\Documents\archi_knowledge_docs"
+knowledge_docs_path: str = rf"{user_dir}\Documents\AiLita_knowledge_docs"
 # ----------------------------------------------------------
 
 # ============================================================================================

@@ -5,6 +5,9 @@ import time
 from datetime import datetime
 
 from pathlib import Path
+
+from tornado.gen import UnknownKeyError
+
 sys.path.append(rf"{Path(__file__).parent.parent}")
 
 from langchain_openai import ChatOpenAI
@@ -17,7 +20,7 @@ import AiLita.src.docs_processor as dp
 
 def main() -> None:
     curr_date: datetime = datetime.now()
-    openai_api_key: str = os.environ["OPENAI_API_KEY"]
+    api_key: str = str()
 
     try:
         model_cmd_arg: str = sys.argv[1]
@@ -25,13 +28,20 @@ def main() -> None:
         print("Provide LLM model name as a command line parameter!")
         sys.exit(1)
     try:
+        if model_cmd_arg == "deepseek_reasoner":
+            _apikey = "DEEPSEEK_API_KEY"
+        elif model_cmd_arg in ("o1", "o3", "o3-mini"):
+            _apikey = "OPENAI_API_KEY"
+        else:
+            raise UnknownKeyError("Unknown LLM model!")
+        api_key = os.environ[_apikey]
         llm_model: str = consts.AI_MODELS[model_cmd_arg]
     except KeyError as err:
         print(err)
         sys.exit(1)
 
-    input_file_path: str = rf"{os.environ['USERDIR']}\Documents\archi_knowledge_docs\test_q_and_a\curr_Q-file"
-    output_file_path: str = rf"{os.environ['USERDIR']}\Documents\archi_knowledge_docs\test_q_and_a"
+    input_file_path: str = rf"{os.environ['USERDIR']}\Documents\AiLita_knowledge_docs\test_q_and_a\curr_Q-file"
+    output_file_path: str = rf"{os.environ['USERDIR']}\Documents\AiLita_knowledge_docs\test_q_and_a"
 
     q_file_name: list[str] = os.listdir(input_file_path)
     if len(q_file_name) > 1:
@@ -46,8 +56,8 @@ def main() -> None:
     )
 
     llm = ChatOpenAI(
-        api_key=openai_api_key,
-        temperature=1, # 0
+        api_key=api_key,
+        temperature=0,   #1
         model=llm_model
     )
     # create the chain to answer questions

@@ -5,8 +5,8 @@ from openai import OpenAI
 
 import sys
 from pathlib import Path
-# sys.path.append(rf"{Path(__file__).parent}\archi")
-# sys.path.append(rf"{Path(__file__).parent}\archi\src")
+# sys.path.append(rf"{Path(__file__).parent}\AiLita")
+# sys.path.append(rf"{Path(__file__).parent}\AiLita\src")
 # print(f"Path --> {Path(__file__).parent}")
 
 from langchain_openai import ChatOpenAI
@@ -50,10 +50,10 @@ with st.sidebar:
     header = st.columns(1)
     # ------------------------
     header_tile0 = header[0].container(height=None, border=True)
-    header_tile0.image("archi/content/img/attorney3.jpg", width=230)
+    header_tile0.image("AiLita/content/img/attorney3.jpg", width=230)
     # ------------------------
     # header_tile1 = header[1].container(height=None, border=False)
-    header_tile0.write("💬 Здравствуйте! Меня зовут Арчия")
+    header_tile0.write("💬 Здравствуйте! Меня зовут Аилита")
     header_tile0.write("💬 Я - виртуальный юрист, который может:")
     header_tile0.markdown("* ответить на Ваши вопросы")
     header_tile0.markdown("* предоставить нужные бланки")

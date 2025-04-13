@@ -14,6 +14,8 @@ class LLM_Model(object):
 # class LLM_Model end
 
 # ----------------------------------------------------------------
+DEEPSEEK_R1: str = "deepseek-reasoner"
+
 GPT_4o3_MINI: str = "o3-mini"
 GPT_4o3_MINI_HIGH: str = "o3-mini-high"
 
@@ -24,6 +26,7 @@ GPT_4o: str = "gpt-4o"
 GPT_4o_MINI: str = "gpt-4o-mini"
 
 AI_MODELS: dict[str, str] = {
+    DEEPSEEK_R1: "deepseek-reasoner",
     GPT_4o3_MINI_HIGH: "o3-mini-high",
     GPT_4o3_MINI: "o3-mini",
     GPT_4o1_MINI: "o1-mini",
@@ -41,6 +44,11 @@ OUTPUT_TOKENS_PRICE_1M: str = "output_tokens_price_1m"
 # ----------------------------------------------------------------
 # prices are per 1 million tokens in USD ($)
 model_price_catalog: dict[str, dict[str, float]] = {
+    DEEPSEEK_R1: {
+        INPUT_TOKENS_PRICE_1M: 0.55,
+        CACHED_INPUT_TOKENS_PRICE_1M: 0.14,
+        OUTPUT_TOKENS_PRICE_1M: 2.19,
+    },
     GPT_4o3_MINI_HIGH: {
         INPUT_TOKENS_PRICE_1M: 1.1,
         CACHED_INPUT_TOKENS_PRICE_1M: 0.55,

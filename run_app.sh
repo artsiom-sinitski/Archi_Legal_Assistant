@@ -1,3 +1,3 @@
 #cd \venv\Scripts\activate.ps1
-cd archi || exit
+cd AiLita || exit
 streamlit run app.py

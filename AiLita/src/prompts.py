@@ -198,7 +198,7 @@ Question: {question}
 
 
 # sys_prompt_en_1: str = """
-# You are a legal assistant (named Archia) who specializes in the consumer protection laws of the Russian Federation.
+# You are a legal assistant (named AiLitaa) who specializes in the consumer protection laws of the Russian Federation.
 # Your task is to answer relevant questions or provide comprehensive yet straightforward advice on resolving consumer
 # issues within the given context.
 
