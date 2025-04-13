@@ -14,9 +14,9 @@ from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
 # from langchain.prompts import PromptTemplate
 
-from archi.src.prompts import *
-import archi.src.constants as consts
-import archi.src.docs_processor as dp
+from AiLita.src.prompts import *
+import AiLita.src.constants as consts
+import AiLita.src.docs_processor as dp
 
 
 openai_api_key = None

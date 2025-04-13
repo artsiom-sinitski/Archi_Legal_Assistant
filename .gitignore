@@ -1,7 +1,7 @@
 /venv
 __pycache__
-archi/.streamlit/secrets.toml
-archi/.devcontainer
+AiLita/.streamlit/secrets.toml
+AiLita/.devcontainer
 .idea
 
 

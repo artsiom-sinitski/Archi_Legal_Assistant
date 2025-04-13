@@ -10,9 +10,9 @@ sys.path.append(rf"{Path(__file__).parent.parent}")
 from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
 
-import archi.src.prompts as prompts
-import archi.src.constants as consts
-import archi.src.docs_processor as dp
+import AiLita.src.prompts as prompts
+import AiLita.src.constants as consts
+import AiLita.src.docs_processor as dp
 
 
 def main() -> None:
