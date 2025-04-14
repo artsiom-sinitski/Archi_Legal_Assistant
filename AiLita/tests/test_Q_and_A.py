@@ -13,6 +13,8 @@ sys.path.append(rf"{Path(__file__).parent.parent}")
 from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
 
+from langchain_deepseek import ChatDeepSeek
+
 import AiLita.src.prompts as prompts
 import AiLita.src.constants as consts
 import AiLita.src.docs_processor as dp
@@ -20,7 +22,7 @@ import AiLita.src.docs_processor as dp
 
 def main() -> None:
     curr_date: datetime = datetime.now()
-    api_key: str = str()
+    provider: str = str()
 
     try:
         model_cmd_arg: str = sys.argv[1]
@@ -28,14 +30,25 @@ def main() -> None:
         print("Provide LLM model name as a command line parameter!")
         sys.exit(1)
     try:
+        llm_model: str = consts.AI_MODELS[model_cmd_arg]
         if model_cmd_arg == "deepseek_reasoner":
+            provider = "deepseek"
             _apikey = "DEEPSEEK_API_KEY"
+            llm = ChatDeepSeek(
+                api_key=os.environ[_apikey],
+                temperature=0,
+                model=llm_model
+            )
         elif model_cmd_arg in ("o1", "o3", "o3-mini"):
+            provider = "openai"
             _apikey = "OPENAI_API_KEY"
+            llm = ChatOpenAI(
+                api_key=os.environ[_apikey],
+                temperature=0,  # 1
+                model=llm_model
+            )
         else:
             raise UnknownKeyError("Unknown LLM model!")
-        api_key = os.environ[_apikey]
-        llm_model: str = consts.AI_MODELS[model_cmd_arg]
     except KeyError as err:
         print(err)
         sys.exit(1)
@@ -55,11 +68,6 @@ def main() -> None:
         input_variables=["context", "question"]
     )
 
-    llm = ChatOpenAI(
-        api_key=api_key,
-        temperature=0,   #1
-        model=llm_model
-    )
     # create the chain to answer questions
     qa_chain = RetrievalQA.from_chain_type(
         llm=llm,
@@ -78,7 +86,7 @@ def main() -> None:
 
     # list documents used to acquire the knowledge
     files: list[str] = os.listdir(dp.knowledge_docs_path)
-    files = sorted([fi for fi in files if os.path.isfile(dp.knowledge_docs_path + '/' + fi)])
+    files = sorted([fi for fi in files if os.path.isfile(f"{dp.knowledge_docs_path}/{fi}")])
 
     # calculated number of tokens for the prompt
     prompt_tokens_num = prompts.calculate_tokens_num(llm_model, PROMPT.template)

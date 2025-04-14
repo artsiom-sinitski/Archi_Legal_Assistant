@@ -3,7 +3,7 @@ __pycache__
 AiLita/.streamlit/secrets.toml
 AiLita/.devcontainer
 .idea
-
+/knowledge_db
 
 
 

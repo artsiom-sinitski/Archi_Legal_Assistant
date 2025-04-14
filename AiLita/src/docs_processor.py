@@ -1,6 +1,9 @@
 import os
 import sys
 from pathlib import Path
+
+from google.auth.exceptions import InvalidValue
+
 sys.path.append(rf"{Path(__file__).parent}")
 
 # from pprint import pprint
@@ -8,6 +11,10 @@ import streamlit as st
 
 # from langchain_openai import ChatOpenAI
 from langchain_openai import OpenAIEmbeddings
+
+# Workaround for DeepSeek embeddings
+import ollama
+from langchain_community.embeddings import OllamaEmbeddings
 
 # from langchain_community.vectorstores import Chroma
 
@@ -23,28 +30,56 @@ from constants import WIN_ENCODING_RU
 
 # ============================================================================================
 # ============================================================================================
-user_dir: str = ''
-openai_api_key: str = ''
-knowledge_db_path: str = f"{get_project_root().parent}/knowledge_db"
 
 try:
-    user_dir = st.secrets.env_vars.USERDIR
+    user_dir: str = st.secrets.env_vars.USERDIR
 except (KeyError, AttributeError) as err:
     # print(f"{'*' * 5} {str(err)}")
     user_dir = os.environ["USERDIR"]
 
 knowledge_docs_path: str = rf"{user_dir}\Documents\AiLita_knowledge_docs"
-# ----------------------------------------------------------
+knowledge_db_path: str = f"{get_project_root().parent}/knowledge_db"
+# -----------------------------------------------------------------------
+
+def setup_knowledge_db(provider: str="openai",
+                       db_path: str=knowledge_db_path) -> (str, any, str):
+    api_key: str = str()
+    embeddings = None
+    match provider.lower():
+        case "deepseek-reasoner":
+            try:
+                api_key = st.secrets.api_credentials.deepseek_api_key
+            except (KeyError, AttributeError) as err:
+                api_key = os.environ["DEEPSEEK_API_KEY"]
+            embeddings = OllamaEmbeddings(model="deepseek-r1")
+            db_path = f"{db_path}/deepseek"
+        case "openai" | "o1" | "o3-mini'":
+            try:
+                api_key = st.secrets.api_credentials.openai_api_key
+            except (KeyError, AttributeError) as err:
+                api_key = os.environ["OPENAI_API_KEY"]
+            embeddings = OpenAIEmbeddings(openai_api_key=api_key)
+            db_path = f"{db_path}/openai"
+        case _:
+            raise InvalidValue("Unknown LLM provider!")
+
+    return api_key, embeddings, db_path
 
 # ============================================================================================
 # ============================================================================================
-try:
-    openai_api_key = st.secrets.api_credentials.api_key
-except (KeyError, AttributeError) as err:
-    # print(f"{'*'*5} {str(err)}")
-    openai_api_key = os.environ["OPENAI_API_KEY"]
+# try:
+#     openai_api_key = st.secrets.api_credentials.api_key
+# except (KeyError, AttributeError) as err:
+#     # print(f"{'*'*5} {str(err)}")
+#     openai_api_key = os.environ["OPENAI_API_KEY"]
 
-embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
+
+provider: str = sys.argv[1]
+
+print(f"docs_processor :: {provider = }")
+print({f"docs_processor :: {db_path = }"})
+
+api_key, embeddings, knowledge_db_path = setup_knowledge_db(provider, knowledge_db_path)
 
 if os.path.isdir(knowledge_db_path):
     vector_db = Chroma(persist_directory=knowledge_db_path, embedding_function=embeddings)
