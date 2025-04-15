@@ -3,44 +3,40 @@ import sys
 import json
 import time
 from datetime import datetime
-
 from pathlib import Path
-
-from tornado.gen import UnknownKeyError
 
 sys.path.append(rf"{Path(__file__).parent.parent}")
 
-from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
-
-from langchain_deepseek import ChatDeepSeek
 
 import AiLita.src.prompts as prompts
 import AiLita.src.constants as consts
-import AiLita.src.docs_processor as dp
+
 
 
 def main() -> None:
     curr_date: datetime = datetime.now()
-    provider: str = str()
 
     try:
         model_cmd_arg: str = sys.argv[1]
     except IndexError as err:
-        print("Provide LLM model name as a command line parameter!")
+        print(f"Provide LLM model name as a command line parameter!\n{str(err)}")
         sys.exit(1)
+
     try:
         llm_model: str = consts.AI_MODELS[model_cmd_arg]
-        if model_cmd_arg == "deepseek_reasoner":
-            provider = "deepseek"
+        if "deepseek" in model_cmd_arg:
+            from langchain_deepseek import ChatDeepSeek
+            import AiLita.src.deepseek_docs_processor as dp
             _apikey = "DEEPSEEK_API_KEY"
             llm = ChatDeepSeek(
                 api_key=os.environ[_apikey],
                 temperature=0,
                 model=llm_model
             )
-        elif model_cmd_arg in ("o1", "o3", "o3-mini"):
-            provider = "openai"
+        elif "gpt" in model_cmd_arg:
+            from langchain_openai import ChatOpenAI
+            import AiLita.src.openai_docs_processor as dp
             _apikey = "OPENAI_API_KEY"
             llm = ChatOpenAI(
                 api_key=os.environ[_apikey],
@@ -48,7 +44,7 @@ def main() -> None:
                 model=llm_model
             )
         else:
-            raise UnknownKeyError("Unknown LLM model!")
+            raise Exception("Unknown LLM model!")
     except KeyError as err:
         print(err)
         sys.exit(1)

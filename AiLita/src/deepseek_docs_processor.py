@@ -2,21 +2,16 @@ import os
 import sys
 from pathlib import Path
 
-from google.auth.exceptions import InvalidValue
+from langchain_core.documents import Document
 
 sys.path.append(rf"{Path(__file__).parent}")
 
 # from pprint import pprint
 import streamlit as st
 
-# from langchain_openai import ChatOpenAI
-from langchain_openai import OpenAIEmbeddings
-
-# Workaround for DeepSeek embeddings
 import ollama
 from langchain_community.embeddings import OllamaEmbeddings
-
-# from langchain_community.vectorstores import Chroma
+from langchain_openai import OpenAIEmbeddings
 
 from langchain_chroma import Chroma
 from langchain.text_splitter import (
@@ -30,59 +25,31 @@ from constants import WIN_ENCODING_RU
 
 # ============================================================================================
 # ============================================================================================
-
 try:
     user_dir: str = st.secrets.env_vars.USERDIR
 except (KeyError, AttributeError) as err:
     # print(f"{'*' * 5} {str(err)}")
     user_dir = os.environ["USERDIR"]
-
+# ---------------------------------------------------------------------------
 knowledge_docs_path: str = rf"{user_dir}\Documents\AiLita_knowledge_docs"
-knowledge_db_path: str = f"{get_project_root().parent}/knowledge_db"
-# -----------------------------------------------------------------------
+knowledge_db_path: str = f"{get_project_root().parent}/knowledge_db/deepseek"
+# ---------------------------------------------------------------------------
+try:
+    api_key: str = st.secrets.api_credentials.deepseek_api_key
+except (KeyError, AttributeError) as err:
+    api_key = os.environ["DEEPSEEK_API_KEY"]
 
-def setup_knowledge_db(provider: str="openai",
-                       db_path: str=knowledge_db_path) -> (str, any, str):
-    api_key: str = str()
-    embeddings = None
-    match provider.lower():
-        case "deepseek-reasoner":
-            try:
-                api_key = st.secrets.api_credentials.deepseek_api_key
-            except (KeyError, AttributeError) as err:
-                api_key = os.environ["DEEPSEEK_API_KEY"]
-            embeddings = OllamaEmbeddings(model="deepseek-r1")
-            db_path = f"{db_path}/deepseek"
-        case "openai" | "o1" | "o3-mini'":
-            try:
-                api_key = st.secrets.api_credentials.openai_api_key
-            except (KeyError, AttributeError) as err:
-                api_key = os.environ["OPENAI_API_KEY"]
-            embeddings = OpenAIEmbeddings(openai_api_key=api_key)
-            db_path = f"{db_path}/openai"
-        case _:
-            raise InvalidValue("Unknown LLM provider!")
-
-    return api_key, embeddings, db_path
-
+# embeddings = OllamaEmbeddings(model="deepseek-r1", base_url="https://api.deepseek.com")
+# embedding_func = OllamaEmbeddings(model="deepseek-r1", api_key=api_key)
+embedding_func = OpenAIEmbeddings(api_key=api_key, model="deepseek-r1", base_url="https://api.deepseek.com")
 # ============================================================================================
 # ============================================================================================
-# try:
-#     openai_api_key = st.secrets.api_credentials.api_key
-# except (KeyError, AttributeError) as err:
-#     # print(f"{'*'*5} {str(err)}")
-#     openai_api_key = os.environ["OPENAI_API_KEY"]
-
-
-provider: str = sys.argv[1]
-
-print(f"docs_processor :: {provider = }")
-print({f"docs_processor :: {db_path = }"})
-
-api_key, embeddings, knowledge_db_path = setup_knowledge_db(provider, knowledge_db_path)
+collection_name: str = "RF_consumer_protection_law"
 
 if os.path.isdir(knowledge_db_path):
-    vector_db = Chroma(persist_directory=knowledge_db_path, embedding_function=embeddings)
+    vector_db = Chroma(collection_name=collection_name,
+        persist_directory=knowledge_db_path, embedding_function=embedding_func
+    )
 else:
     import nltk  # if "nltk" not in sys.modules:
 
@@ -100,22 +67,42 @@ else:
     nltk.download('punkt_tab')
 
     text_splitter = NLTKTextSplitter(separator="\n\n", language="russian")
-    data = loader.load_and_split(text_splitter)
+    chunks: list[Document] = loader.load_and_split(text_splitter)
 
     print(f"{'*'*3} Scanned and split the knowledge documents {'*'*3}")
     seen_docs = set()
-    for source in data:
+    for source in chunks:
         source_meta = source.metadata['source'].split('\\')[-1]
         if source_meta not in seen_docs:
             seen_docs.add(source_meta)
             print(f"\t - {source_meta}")
     print(f"{'-'*25} Total documents: {len(seen_docs)}", end='\n')
 
-    # Embed and store the pages data on disk
-    vector_db = Chroma.from_documents(
-        documents=data,
-        embedding=embeddings,
-        persist_directory=knowledge_db_path
+    from concurrent.futures import ThreadPoolExecutor
+    from chromadb.config import Settings
+    from chromadb import Client
+
+    # Parallelize embedding generation
+    def generate_embedding(chunk):
+        return embedding_func.embed_query(chunk.page_content)
+
+    # with ThreadPoolExecutor() as executor:
+    #     embeddings = list(executor.map(generate_embedding, chunks))
+
+    client = Client(Settings())
+    # client.delete_collection(name=collection_name)  # Delete existing collection (if any)
+    collection = client.create_collection(name=collection_name)
+    # Add documents and embeddings to Chroma
+    for idx, chunk in enumerate(chunks):
+        collection.add(
+            documents=[chunk.page_content],
+            metadatas=[{'id': idx}],
+            embeddings=[embedding_func.embed_query(chunk.page_content)[idx]],
+            ids=[str(idx)]  # Ensure IDs are strings
+        )
+    # for end
+    vector_db = Chroma(collection_name=collection_name, client=client,
+        persist_directory=knowledge_db_path, embedding_function=embedding_func
     )
     print(f"{'*' * 3} Created knowledge database (db) {'*'*3}")
 # if end

@@ -12,7 +12,7 @@ def calculate_tokens_num(llm_model: str, input_text: str) -> int:
         input_text = str(input_text)
     try:
         encoding: tiktoken.Encoding = tiktoken.encoding_for_model(llm_model)
-        print(f"{'*'*5} Found '{encoding}' for '{llm_model}' model...")
+        # print(f"{'*'*5} Found '{encoding}' for '{llm_model}' model...")
     except KeyError as err:
         default_encoding: str = "cl100k_base"    # "o200k_base"
         print(f"\n{'*'*5} {err}")
