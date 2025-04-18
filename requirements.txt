@@ -13,3 +13,4 @@ nltk==3.9.1
 tiktoken==0.8.0
 ollama==0.4.7
 pydantic==2.11.3
+docx2txt==0.9
