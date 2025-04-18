@@ -5,6 +5,8 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+from pydantic import SecretStr
+
 sys.path.append(rf"{Path(__file__).parent.parent}")
 
 from langchain.chains import RetrievalQA
@@ -16,21 +18,19 @@ import AiLita.src.constants as consts
 
 def main() -> None:
     curr_date: datetime = datetime.now()
-
     try:
         model_cmd_arg: str = sys.argv[1]
     except IndexError as err:
         print(f"Provide LLM model name as a command line parameter!\n{str(err)}")
         sys.exit(1)
-
     try:
         llm_model: str = consts.AI_MODELS[model_cmd_arg]
         if "deepseek" in model_cmd_arg:
             from langchain_deepseek import ChatDeepSeek
-            import AiLita.src.deepseek_docs_processor as dp
+            import AiLita.src.deepseek_docs_processor_local as dp
             _apikey = "DEEPSEEK_API_KEY"
             llm = ChatDeepSeek(
-                api_key=os.environ[_apikey],
+                api_key=SecretStr(os.environ[_apikey]),
                 temperature=0,
                 model=llm_model
             )
@@ -39,7 +39,7 @@ def main() -> None:
             import AiLita.src.openai_docs_processor as dp
             _apikey = "OPENAI_API_KEY"
             llm = ChatOpenAI(
-                api_key=os.environ[_apikey],
+                api_key=SecretStr(os.environ[_apikey]),
                 temperature=0,  # 1
                 model=llm_model
             )
@@ -63,7 +63,6 @@ def main() -> None:
         template=prompts.sys_prompt_to_calculate_penalty_ru,
         input_variables=["context", "question"]
     )
-
     # create the chain to answer questions
     qa_chain = RetrievalQA.from_chain_type(
         llm=llm,
@@ -78,7 +77,7 @@ def main() -> None:
         data = json.load(in_fp)
 
     questions: list[str] = data.get("Questions")
-    ans_file_name: str = f"Answered_{llm_model.upper()}_{len(questions)}qs_{topic}_{curr_date.strftime('%Y%m%d')}.txt"
+    ans_file_name: str = f"Answered_{model_cmd_arg.upper()}_{len(questions)}qs_{topic}_{curr_date.strftime('%Y%m%d')}.txt"
 
     # list documents used to acquire the knowledge
     files: list[str] = os.listdir(dp.knowledge_docs_path)
@@ -90,7 +89,6 @@ def main() -> None:
     # -----------------------------------------------------------------------------------------------------
     start_time: float = 0.0
     end_time: float = 0.0
-    elapsed_time: str = ""
 
     input_tokens_total: float = 0.0
     input_tokens_total_price: float = 0.0
@@ -99,13 +97,15 @@ def main() -> None:
     output_tokens_total_price: float = 0.0
 
     answer_grand_total_price: float = 0.0
+    grand_total_amount: float = 0.0
 
-    input_tokens_rate: float = consts.model_price_catalog[llm_model][consts.INPUT_TOKENS_PRICE_1M] / consts.ONE_MILLION
-    output_tokens_rate: float = consts.model_price_catalog[llm_model][consts.OUTPUT_TOKENS_PRICE_1M] / consts.ONE_MILLION
-    # -----------------------------------------------------------------------------------------------------
+    input_tokens_rate: float = consts.model_price_catalog[model_cmd_arg][consts.INPUT_TOKENS_PRICE_1M] / consts.ONE_MILLION
+    output_tokens_rate: float = consts.model_price_catalog[model_cmd_arg][consts.OUTPUT_TOKENS_PRICE_1M] / consts.ONE_MILLION
+    # ------------------------------------------------------------------------------------------------------------------
+
     with open(fr"{output_file_path}\{ans_file_name}", 'w', encoding="utf-8") as out_fp:
         out_fp.write(f"DATE:\t{curr_date.strftime('%Y-%m-%d %H:%M')}\n")
-        out_fp.write(f"LLM MODEL:\t{llm_model}\n")
+        out_fp.write(f"LLM MODEL:\t{model_cmd_arg}\n")
         out_fp.write(f"ENCODING:\t{consts.WIN_ENCODING_RU}\n")
         out_fp.write(f"Q-FILE:\t{q_file_name[0]}\n")
         out_fp.write(f"DOCS:\t{len(files)}\n")
@@ -115,6 +115,8 @@ def main() -> None:
 
         print(f"{'*'*3} Started processing questions...")
         response: dict[str, any] = {}
+
+        run_time_start: float = time.perf_counter()
 
         for idx, question in enumerate(questions, start=1):
             start_time = time.perf_counter()
@@ -131,7 +133,7 @@ def main() -> None:
             input_tokens_total_price = input_tokens_total * input_tokens_rate
             print(f"\t{input_tokens_total_price = }")
 
-            output_tokens_total = prompts.calculate_tokens_num(llm_model, response)
+            output_tokens_total = prompts.calculate_tokens_num(llm_model, str(response))
             print(f"\t{output_tokens_total = }")
 
             output_tokens_total_price = output_tokens_total * output_tokens_rate
@@ -139,6 +141,8 @@ def main() -> None:
 
             answer_grand_total_price = input_tokens_total_price + output_tokens_total_price
             print(f"\t{answer_grand_total_price = }")
+
+            grand_total_amount += answer_grand_total_price
 
             end_time = time.perf_counter() - start_time
             elapsed_time = time.strftime("%H:%M:%S", time.gmtime(end_time))
@@ -153,8 +157,13 @@ def main() -> None:
             out_fp.write(f"\n\n{'-'*99}\n")
             print(f"Processed Q{idx} (${round(answer_grand_total_price, 5)} | {elapsed_time}) -> {question}")
         # for end
-        print(f"{'*' * 3} Finished processing questions {'*' * 3}")
+        run_time_end: float = time.perf_counter() - run_time_start
+        elapsed_time = time.strftime("%H:%M:%S", time.gmtime(run_time_end))
+        out_fp.write(f"\n{'-'*99}\n")
+        out_fp.write(f"\tTotal Run Time:\t{elapsed_time}\n")
+        out_fp.write(f"\tGrand Total Cost:\t${grand_total_amount}")
     # with end
+    print(f"{'*' * 3} Finished processing questions {'*' * 3}")
 
 
 if __name__ == "__main__":

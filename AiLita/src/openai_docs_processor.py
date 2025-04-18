@@ -7,9 +7,7 @@ sys.path.append(rf"{Path(__file__).parent}")
 # from pprint import pprint
 import streamlit as st
 
-# from langchain_openai import ChatOpenAI
 from langchain_openai import OpenAIEmbeddings
-
 from langchain_chroma import Chroma
 from langchain.text_splitter import (
     NLTKTextSplitter #, RecursiveCharacterTextSplitter
@@ -25,7 +23,6 @@ from constants import WIN_ENCODING_RU
 try:
     user_dir: str = st.secrets.env_vars.USERDIR
 except (KeyError, AttributeError) as err:
-    # print(f"{'*' * 5} {str(err)}")
     user_dir = os.environ["USERDIR"]
 # -------------------------------------------------------------------------
 knowledge_docs_path: str = rf"{user_dir}\Documents\AiLita_knowledge_docs"
@@ -44,21 +41,18 @@ embedding_func = OpenAIEmbeddings(api_key=api_key)
 if os.path.isdir(knowledge_db_path):
     vector_db = Chroma(persist_directory=knowledge_db_path, embedding_function=embedding_func)
 else:
-    import nltk  # if "nltk" not in sys.modules:
+    import nltk
+    # TODO: add dir check and download package if it is not found
+    # nltk_downloader = nltk.downloader.Downloader
+    # nltk_downloader.is_installed('punkt')
+    nltk.download('punkt')
+    nltk.download('punkt_tab')
 
     loader = DirectoryLoader(knowledge_docs_path,
         glob="*.txt", loader_cls=TextLoader,
         loader_kwargs={"encoding": WIN_ENCODING_RU},
         recursive=False, use_multithreading=True, show_progress=True
     )
-
-    # TODO
-    # add dir check and download package if it is not found
-    # nltk_downloader = nltk.downloader.Downloader
-    # nltk_downloader.is_installed('punkt')
-    nltk.download('punkt')
-    nltk.download('punkt_tab')
-
     text_splitter = NLTKTextSplitter(separator="\n\n", language="russian")
     data = loader.load_and_split(text_splitter)
 
