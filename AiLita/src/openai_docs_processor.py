@@ -7,11 +7,10 @@ sys.path.append(rf"{Path(__file__).parent}")
 # from pprint import pprint
 import streamlit as st
 
-from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
-from langchain.text_splitter import (
-    NLTKTextSplitter #, RecursiveCharacterTextSplitter
-)
+from langchain_openai import OpenAIEmbeddings
+from langchain.text_splitter import NLTKTextSplitter
+from langchain_core.documents import Document
 from langchain_community.document_loaders import (
     TextLoader, DirectoryLoader
 )
@@ -24,15 +23,13 @@ try:
     user_dir: str = st.secrets.env_vars.USERDIR
 except (KeyError, AttributeError) as err:
     user_dir = os.environ["USERDIR"]
-# -------------------------------------------------------------------------
-knowledge_docs_path: str = rf"{user_dir}\Documents\AiLita_knowledge_docs"
-knowledge_db_path: str = f"{get_project_root().parent}/knowledge_db/openai"
-# -------------------------------------------------------------------------
 try:
     api_key = st.secrets.api_credentials.openai_api_key
 except (KeyError, AttributeError) as err:
-    # print(f"{'*'*5} {str(err)}")
     api_key = os.environ["OPENAI_API_KEY"]
+# -------------------------------------------------------------------------
+knowledge_docs_path: str = rf"{user_dir}\Documents\AiLita_knowledge_docs"
+knowledge_db_path: str = f"{get_project_root().parent}/knowledge_db/openai"
 
 embedding_func = OpenAIEmbeddings(api_key=api_key)
 # ============================================================================================
@@ -42,9 +39,6 @@ if os.path.isdir(knowledge_db_path):
     vector_db = Chroma(persist_directory=knowledge_db_path, embedding_function=embedding_func)
 else:
     import nltk
-    # TODO: add dir check and download package if it is not found
-    # nltk_downloader = nltk.downloader.Downloader
-    # nltk_downloader.is_installed('punkt')
     nltk.download('punkt')
     nltk.download('punkt_tab')
 
@@ -54,20 +48,20 @@ else:
         recursive=False, use_multithreading=True, show_progress=True
     )
     text_splitter = NLTKTextSplitter(separator="\n\n", language="russian")
-    data = loader.load_and_split(text_splitter)
+    chunks: list[Document] = loader.load_and_split(text_splitter)
 
-    print(f"{'*'*3} Scanned and split the knowledge documents {'*'*3}")
+    print(f"{'*'*3} Loaded knowledge documents {'*'*3}")
     seen_docs = set()
-    for source in data:
+    for source in chunks:
         source_meta = source.metadata['source'].split('\\')[-1]
         if source_meta not in seen_docs:
             seen_docs.add(source_meta)
             print(f"\t - {source_meta}")
-    print(f"{'-'*25} Total documents: {len(seen_docs)}", end='\n')
+    print(f"\t{'-'*30} Total documents: {len(seen_docs)}", end='\n')
 
     # Embed and store the pages data on disk
     vector_db = Chroma.from_documents(
-        documents=data,
+        documents=chunks,
         embedding=embedding_func,
         persist_directory=knowledge_db_path
     )

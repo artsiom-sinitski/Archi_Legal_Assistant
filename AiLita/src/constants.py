@@ -1,11 +1,10 @@
 import src.prompts as pmpt
-# from enum import Enum
 
 # from pydantic import BaseModel
 
 WIN_ENCODING_RU: str = "Windows-1251"
 
-
+# ----------------------------------------------------------------
 class LLM_Model(object):
     def __init__(self, name: str, encoding: str, price: float):
         self.name = name
