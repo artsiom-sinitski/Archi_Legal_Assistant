@@ -54,7 +54,7 @@ def main() -> None:
 
     q_file_name: list[str] = os.listdir(input_file_path)
     if len(q_file_name) > 1:
-        raise ValueError(f"Only 1 file expected at this location, but found -> {len(q_file_name)}")
+        raise ValueError(f"Only 1 file expected, but found -> {len(q_file_name)}")
 
     full_q_file_path: str = os.path.join(input_file_path, q_file_name[0])
     topic: str = q_file_name[0].split('.')[0]
@@ -77,7 +77,7 @@ def main() -> None:
         data = json.load(in_fp)
 
     questions: list[str] = data.get("Questions")
-    ans_file_name: str = f"Answered_{model_cmd_arg.upper()}_{len(questions)}qs_{topic}_{curr_date.strftime('%Y%m%d')}.txt"
+    ans_file_name: str = f"Answered_{model_cmd_arg.upper()}_{topic}_{curr_date.strftime('%Y%m%d')}.txt"
 
     # list documents used to acquire the knowledge
     files: list[str] = os.listdir(dp.knowledge_docs_path)
@@ -104,28 +104,24 @@ def main() -> None:
     # ------------------------------------------------------------------------------------------------------------------
 
     with open(fr"{output_file_path}\{ans_file_name}", 'w', encoding="utf-8") as out_fp:
-        out_fp.write(f"DATE:\t{curr_date.strftime('%Y-%m-%d %H:%M')}\n")
+        out_fp.write(f"REPORT DATE:\t{curr_date.strftime('%Y-%m-%d %H:%M')}\n")
         out_fp.write(f"LLM MODEL:\t{model_cmd_arg}\n")
         out_fp.write(f"ENCODING:\t{consts.WIN_ENCODING_RU}\n")
         out_fp.write(f"Q-FILE:\t{q_file_name[0]}\n")
-        out_fp.write(f"DOCS:\t{len(files)}\n")
+        out_fp.write(f"LAW DOCS:\t{len(files)}\n")
         out_fp.writelines([f"\t - {file}\n" for file in files])
         out_fp.write(f"\nPROMPT:{prompts.sys_prompt_to_calculate_penalty_ru}")
         out_fp.write(f"\n{'#'*70}\n")
 
         print(f"{'*'*3} Started processing questions...")
-        response: dict[str, any] = {}
-
         run_time_start: float = time.perf_counter()
+        response: dict[str, any] = {}
 
         for idx, question in enumerate(questions, start=1):
             start_time = time.perf_counter()
-
             # Dict 'response' has 3 keys -> {'query': str, 'result': str, 'source_documents': list}
             response = qa_chain(question)
 
-            # print(f"{len(question) = }")
-            # print(f"{len(response['query']) = }")
             q_tokens_num = prompts.calculate_tokens_num(llm_model, question)
             print(f"\n\t{q_tokens_num = }")
 
@@ -161,7 +157,7 @@ def main() -> None:
         elapsed_time = time.strftime("%H:%M:%S", time.gmtime(run_time_end))
         out_fp.write(f"\n{'-'*99}\n")
         out_fp.write(f"\tTotal Run Time:\t{elapsed_time}\n")
-        out_fp.write(f"\tGrand Total Cost:\t${grand_total_amount}")
+        out_fp.write(f"\tGrand Total Cost:\t${round(grand_total_amount, 2)}")
     # with end
     print(f"{'*' * 3} Finished processing questions {'*' * 3}")
 
