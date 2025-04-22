@@ -44,7 +44,7 @@ def main() -> None:
                 model=llm_model
             )
         else:
-            raise Exception("Unknown LLM model!")
+            raise Exception("Unknown LLM!")
     except KeyError as err:
         print(err)
         sys.exit(1)
