@@ -130,7 +130,7 @@ def main() -> None:
             print(f"\t{round(input_tokens_total_price, 5) = }")
 
             output_tokens_total = prompts.calculate_tokens_num(llm_model, str(response))
-            print(f"\t{round(output_tokens_total, 5) = }")
+            print(f"\t{output_tokens_total = }")
 
             output_tokens_total_price = output_tokens_total * output_tokens_rate
             print(f"\t{round(output_tokens_total_price, 5) = }")
