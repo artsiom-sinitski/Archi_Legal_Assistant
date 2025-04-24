@@ -127,16 +127,16 @@ def main() -> None:
 
             input_tokens_total = prompt_tokens_num + q_tokens_num
             input_tokens_total_price = input_tokens_total * input_tokens_rate
-            print(f"\t{input_tokens_total_price = }")
+            print(f"\t{round(input_tokens_total_price, 5) = }")
 
             output_tokens_total = prompts.calculate_tokens_num(llm_model, str(response))
-            print(f"\t{output_tokens_total = }")
+            print(f"\t{round(output_tokens_total, 5) = }")
 
             output_tokens_total_price = output_tokens_total * output_tokens_rate
-            print(f"\t{output_tokens_total_price = }")
+            print(f"\t{round(output_tokens_total_price, 5) = }")
 
             answer_grand_total_price = input_tokens_total_price + output_tokens_total_price
-            print(f"\t{answer_grand_total_price = }")
+            print(f"\t{round(answer_grand_total_price, 5) = }")
 
             grand_total_amount += answer_grand_total_price
 
