@@ -36,7 +36,7 @@ collection_name: str = "RF_Consumer_Protection_Law"
 
 embedding_func: OllamaEmbeddingFunction = OllamaEmbeddingFunction(
     url="http://localhost:11434",   # Default Ollama server address
-    model_name="deepseek-r1:8b",    # DeepSeek model with 8B params
+    model_name="deepseek-r1:8b",    # DeepSeek model with 32B params
 )
 # ============================================================================================
 
