@@ -1,4 +1,4 @@
-import src.prompts as pmpt
+import AiLita.src.prompts as pmpt
 
 # from pydantic import BaseModel
 
@@ -83,6 +83,7 @@ model_price_catalog: dict[str, dict[str, float]] = {
 
 topic_2_prompt_mapping: dict[str, str] = {
     "question_prompt": pmpt.sys_prompt_to_answer_question_ru,
-    "penalty_prompt": pmpt.sys_prompt_to_calculate_penalty_ru
+    "penalty_prompt" : pmpt.sys_prompt_to_calculate_penalty_ru,
+    "claim_prompt"   : pmpt.sys_prompt_to_prepare_claim_ru
 }
 
