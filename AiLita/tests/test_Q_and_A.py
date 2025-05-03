@@ -228,7 +228,7 @@ def main() -> None:
     # ------------------------------------------------------------------------------------------------------------
     # list documents used to acquire the knowledge
     files: list[str] = os.listdir(dp.knowledge_docs_path)
-    files = sorted([fi for fi in files if os.path.isfile(f"{dp.knowledge_docs_path}/{fi}")])
+    files = sorted([fi for fi in files if os.path.isfile(f"{dp.knowledge_docs_path}/{fi}") and ".docx" in fi])
     test_params["knowledge_files"] = files
 
     # calculated number of tokens for the prompt
