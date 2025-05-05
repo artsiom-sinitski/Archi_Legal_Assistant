@@ -22,12 +22,20 @@ import AiLita.src.deepseek_docs_processor_local as dp
 # ====  Function Definitions ============================================================
 # =======================================================================================
 
+# Cmd line arguments examples:
+#  -> local deepseek-r1:8b produce_court_claim
+#  -> cloud deepseek-r1 produce_court_claim
 def setup() -> dict[str, Any]:
     test_params: dict[str, Any] = dict()
     test_params["report_date"] = datetime.now().strftime('%Y%m%d')
     test_params["report_ts"] = datetime.now().strftime('%Y-%m-%d %H:%M')
     try:
-        test_params["model_argv"] = sys.argv[1]
+        test_params["service_mode"] = sys.argv[1]
+    except IndexError as err:
+        print(f"Provide LLM service mode as a command line parameter!\n{str(err)}")
+        sys.exit(1)
+    try:
+        test_params["model_argv"] = sys.argv[2]
     except IndexError as err:
         print(f"Provide LLM model name as a command line parameter!\n{str(err)}")
         sys.exit(1)
@@ -37,7 +45,6 @@ def setup() -> dict[str, Any]:
         temperature: int = 0
         if "deepseek" in test_params["model_argv"]:
             from langchain_deepseek import ChatDeepSeek
-            import AiLita.src.deepseek_docs_processor_local as dp
             _apikey = "DEEPSEEK_API_KEY"
             llm = ChatDeepSeek(
                 api_key=SecretStr(os.environ[_apikey]),
@@ -56,6 +63,9 @@ def setup() -> dict[str, Any]:
         else:
             raise Exception("Unknown LLM!")
         test_params["llm_obj"] = llm
+        print(f"{'>'*3} Command line argument(s)", end=' -> ')
+        for arg in sys.argv[1:]:
+            print(arg, end=' | ')
     except KeyError as err:
         print(err)
         sys.exit(1)
@@ -65,7 +75,7 @@ def setup() -> dict[str, Any]:
 
     q_file_name: list[str] = os.listdir(test_params["input_file_path"])
     if len(q_file_name) != 1:
-        raise ValueError(f"Expected Only 1 file, but found -> {len(q_file_name)}")
+        raise ValueError(f"Expected only 1 file, but found -> {len(q_file_name)}")
 
     if q_file_name[0].endswith(".json"):
         test_params["q_file_type"] = "json"
@@ -196,7 +206,7 @@ def produce_court_claim(test_params: dict[str, Any], qa_chain) -> None:
 
 def main() -> None:
     test_params: dict[str, Any] = setup()
-    test_params["user_action"] = sys.argv[2]
+    test_params["user_action"] = sys.argv[3]
     # -----------------------------------------------------------------------------------------------------
     start_time: float = 0.0
     end_time: float = 0.0
@@ -228,7 +238,7 @@ def main() -> None:
     # ------------------------------------------------------------------------------------------------------------
     # list documents used to acquire the knowledge
     files: list[str] = os.listdir(dp.knowledge_docs_path)
-    files = sorted([fi for fi in files if os.path.isfile(f"{dp.knowledge_docs_path}/{fi}") and ".docx" in fi])
+    files = sorted([fi for fi in files if os.path.isfile(f"{dp.knowledge_docs_path}/{fi}") and fi.endswith(".docx")])
     test_params["knowledge_files"] = files
 
     # calculated number of tokens for the prompt

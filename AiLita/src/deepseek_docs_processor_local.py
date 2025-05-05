@@ -5,10 +5,13 @@ from pathlib import Path
 sys.path.append(rf"{Path(__file__).parent}")
 
 import streamlit as st
+from pydantic import SecretStr
 
 from chromadb import PersistentClient
 from chromadb.utils.embedding_functions.ollama_embedding_function import OllamaEmbeddingFunction
+from chromadb.utils.embedding_functions.openai_embedding_function import OpenAIEmbeddingFunction
 
+from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain.text_splitter import NLTKTextSplitter
@@ -34,10 +37,31 @@ knowledge_docs_path: str = rf"{user_dir}\Documents\AiLita_knowledge_docs"
 knowledge_db_path: str = f"{get_project_root().parent}/knowledge_db/deepseek"
 collection_name: str = "RF_Consumer_Protection_Law"
 
-embedding_func: OllamaEmbeddingFunction = OllamaEmbeddingFunction(
+default_embedding_func: OllamaEmbeddingFunction = OllamaEmbeddingFunction(
     url="http://localhost:11434",   # Default Ollama server address
-    model_name=sys.argv[1],     # DeepSeek model with 32B params - "deepseek-r1:32b"
+    model_name="nomic-embed-text",  # Embedding model supported by Ollama
 )
+
+# Embedding vectors will be different when created by various embedded models
+match sys.argv[1]: # service mode
+    case "local":
+        embedding_func = OllamaEmbeddingFunction(
+            url="http://localhost:11434",   # Default Ollama server address
+            model_name="nomic-embed-text",  # Embedding model supported by Ollama
+        )
+    case "cloud":
+        # use OpenAI's provided embedding function, as DeepSeek's one isn't available yet
+        # embedding_func = OpenAIEmbeddings(
+        #     api_key=SecretStr(os.environ["OPENAI_API_KEY"]),
+        #     model="text-embedding-3-small"
+        # )
+        embedding_func = OpenAIEmbeddingFunction(
+            api_key=os.environ["OPENAI_API_KEY"],
+            model_name="text-embedding-3-large",
+            # api_base="https://api.deepseek.com/embedding"
+        )
+    case _:
+        embedding_func = default_embedding_func
 # ============================================================================================
 
 if not os.path.isdir(knowledge_db_path):
