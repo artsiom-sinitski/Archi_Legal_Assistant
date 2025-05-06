@@ -43,7 +43,7 @@ default_embedding_func: OllamaEmbeddingFunction = OllamaEmbeddingFunction(
 )
 
 # Embedding vectors will be different when created by various embedded models
-match sys.argv[1]: # service mode
+match sys.argv[1]:   # service mode
     case "local":
         embedding_func = OllamaEmbeddingFunction(
             url="http://localhost:11434",   # Default Ollama server address

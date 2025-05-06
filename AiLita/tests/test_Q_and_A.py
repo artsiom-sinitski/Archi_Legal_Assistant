@@ -63,9 +63,6 @@ def setup() -> dict[str, Any]:
         else:
             raise Exception("Unknown LLM!")
         test_params["llm_obj"] = llm
-        print(f"{'>'*3} Command line argument(s)", end=' -> ')
-        for arg in sys.argv[1:]:
-            print(arg, end=' | ')
     except KeyError as err:
         print(err)
         sys.exit(1)
@@ -112,10 +109,10 @@ def answer_law_questions(test_params: dict[str, Any], qa_chain) -> None:
         out_fp.write(f"REPORT DATE:\t{test_params["report_ts"]}\n")
         out_fp.write(f"SERVICE TYPE:\t{test_params["service_mode"]}\n")
         out_fp.write(f"LLM MODEL:\t{test_params["model_argv"]}\n")
-        out_fp.write(f"Q-FILE:\t{test_params["q_file_name"]}\n")
-        out_fp.write(f"KNOWLEDGE DOCS:\t({len(test_params["knowledge_files"])})\n")
+        out_fp.write(f" RAG BASE:\t{len(test_params["knowledge_files"])} documents\n")
         out_fp.writelines([f"\t - {file}\n" for file in test_params["knowledge_files"]])
-        out_fp.write(f"\nPROMPT:{test_params["prompt_text"]}")
+        out_fp.write(f"QUESTION FILE:\t{test_params["q_file_name"]}\n")
+        # out_fp.write(f"\nPROMPT:{test_params["prompt_text"]}")
         out_fp.write(f"\n{'#'*70}\n")
 
         response: dict[str, Any] = {}
@@ -184,11 +181,11 @@ def produce_court_claim(test_params: dict[str, Any], qa_chain) -> None:
     out_doc_header.AppendText(f"REPORT DATE:\t{test_params["report_ts"]}\n")
     out_doc_header.AppendText(f"SERVICE MODE:\t{test_params["service_mode"]}\n")
     out_doc_header.AppendText(f"LLM MODEL:\t{test_params["model_argv"]}\n")
-    out_doc_header.AppendText(f"Q-FILE:\t{test_params["q_file_name"]}\n")
-    out_doc_header.AppendText(f"KNOWLEDGE DOCS:\t({len(test_params["knowledge_files"])})\n")
+    out_doc_header.AppendText(f" RAG BASE:\t{len(test_params["knowledge_files"])} documents\n")
     for file in test_params["knowledge_files"]:
         out_doc_header.AppendText(f"\t - {file}\n")
-    out_doc_header.AppendText(f"\nPROMPT:{test_params["prompt_text"]}")
+    out_doc_header.AppendText(f"QUESTION FILE:\t{test_params["q_file_name"]}\n")
+    # out_doc_header.AppendText(f"\nPROMPT:{test_params["prompt_text"]}")
     out_doc_header.AppendText(f"\n{'#'*40}\n")
 
     # get the response
@@ -206,9 +203,13 @@ def produce_court_claim(test_params: dict[str, Any], qa_chain) -> None:
 
 
 def main() -> None:
+    print(f"{'>' * 3} Input args", end=' -> ')
+    for arg in sys.argv[1:]:
+        print(arg, end=' | ')
+    # ---------------------------------------------------------------------
     test_params: dict[str, Any] = setup()
     test_params["user_action"] = sys.argv[3]
-    # -----------------------------------------------------------------------------------------------------
+    # ---------------------------------------------------------------------
     start_time: float = 0.0
     end_time: float = 0.0
 
