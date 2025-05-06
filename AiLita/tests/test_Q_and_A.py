@@ -110,10 +110,10 @@ def answer_law_questions(test_params: dict[str, Any], qa_chain) -> None:
 
     with open(fr"{test_params["output_file_path"]}\{ans_file_name}", 'w', encoding="utf-8") as out_fp:
         out_fp.write(f"REPORT DATE:\t{test_params["report_ts"]}\n")
+        out_fp.write(f"SERVICE TYPE:\t{test_params["service_mode"]}\n")
         out_fp.write(f"LLM MODEL:\t{test_params["model_argv"]}\n")
-        out_fp.write(f"ENCODING:\t{consts.WIN_ENCODING_RU}\n")
         out_fp.write(f"Q-FILE:\t{test_params["q_file_name"]}\n")
-        out_fp.write(f"LAW DOCS:\t{len(test_params["knowledge_files"])}\n")
+        out_fp.write(f"KNOWLEDGE DOCS:\t({len(test_params["knowledge_files"])})\n")
         out_fp.writelines([f"\t - {file}\n" for file in test_params["knowledge_files"]])
         out_fp.write(f"\nPROMPT:{test_params["prompt_text"]}")
         out_fp.write(f"\n{'#'*70}\n")
@@ -182,13 +182,14 @@ def produce_court_claim(test_params: dict[str, Any], qa_chain) -> None:
 
     out_doc_header = section.AddParagraph()
     out_doc_header.AppendText(f"REPORT DATE:\t{test_params["report_ts"]}\n")
+    out_doc_header.AppendText(f"SERVICE MODE:\t{test_params["service_mode"]}\n")
     out_doc_header.AppendText(f"LLM MODEL:\t{test_params["model_argv"]}\n")
     out_doc_header.AppendText(f"Q-FILE:\t{test_params["q_file_name"]}\n")
-    out_doc_header.AppendText(f"LAW DOCS:\t{len(test_params["knowledge_files"])}\n")
+    out_doc_header.AppendText(f"KNOWLEDGE DOCS:\t({len(test_params["knowledge_files"])})\n")
     for file in test_params["knowledge_files"]:
         out_doc_header.AppendText(f"\t - {file}\n")
     out_doc_header.AppendText(f"\nPROMPT:{test_params["prompt_text"]}")
-    out_doc_header.AppendText(f"\n{'#' * 40}\n")
+    out_doc_header.AppendText(f"\n{'#'*40}\n")
 
     # get the response
     out_doc_p1 = section.AddParagraph()
