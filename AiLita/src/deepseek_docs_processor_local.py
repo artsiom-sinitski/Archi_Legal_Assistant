@@ -51,14 +51,9 @@ match sys.argv[1]:   # service mode
         )
     case "cloud":
         # use OpenAI's provided embedding function, as DeepSeek's one isn't available yet
-        # embedding_func = OpenAIEmbeddings(
-        #     api_key=SecretStr(os.environ["OPENAI_API_KEY"]),
-        #     model="text-embedding-3-small"
-        # )
-        embedding_func = OpenAIEmbeddingFunction(
+        embedding_func = OpenAIEmbeddingFunction(  #OpenAIEmbeddings
             api_key=os.environ["OPENAI_API_KEY"],
             model_name="text-embedding-3-large",
-            # api_base="https://api.deepseek.com/embedding"
         )
     case _:
         embedding_func = default_embedding_func

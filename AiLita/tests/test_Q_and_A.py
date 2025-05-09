@@ -23,7 +23,7 @@ import AiLita.src.deepseek_docs_processor_local as dp
 # =======================================================================================
 
 # Cmd line arguments examples:
-#  -> local deepseek-r1:8b produce_court_claim
+#  -> local deepseek-r1:32b produce_court_claim
 #  -> cloud deepseek-r1 produce_court_claim
 def setup() -> dict[str, Any]:
     test_params: dict[str, Any] = dict()
@@ -46,20 +46,31 @@ def setup() -> dict[str, Any]:
         if "deepseek" in test_params["model_argv"]:
             from langchain_deepseek import ChatDeepSeek
             _apikey = "DEEPSEEK_API_KEY"
-            llm = ChatDeepSeek(
-                api_key=SecretStr(os.environ[_apikey]),
-                temperature=temperature,
-                model=test_params["llm_model"]
-            )
+            if test_params["service_mode"] == "cloud":
+                llm = ChatDeepSeek(
+                    api_key=SecretStr(os.environ[_apikey]),
+                    temperature=temperature,
+                    model=test_params["llm_model"]
+                )
+            elif test_params["service_mode"] == "local":
+                # from langchain_ollama import OllamaLLM
+                # llm = OllamaLLM(model=test_params["model_argv"])
+                from langchain_ollama import ChatOllama
+                llm = ChatOllama(model=test_params["model_argv"])
+            else:
+                raise Exception("Unknown service mode!")
         elif "gpt" in test_params["model_argv"]:
             from langchain_openai import ChatOpenAI
             import AiLita.src.openai_docs_processor as dp
             _apikey = "OPENAI_API_KEY"
-            llm = ChatOpenAI(
-                api_key=SecretStr(os.environ[_apikey]),
-                temperature=temperature,
-                model=test_params["llm_model"]
-            )
+            if test_params["service_mode"] == "cloud":
+                llm = ChatOpenAI(
+                    api_key=SecretStr(os.environ[_apikey]),
+                    temperature=temperature,
+                    model=test_params["llm_model"]
+                )
+            else:
+                raise Exception("Unknown service mode!")
         else:
             raise Exception("Unknown LLM!")
         test_params["llm_obj"] = llm
@@ -109,7 +120,7 @@ def answer_law_questions(test_params: dict[str, Any], qa_chain) -> None:
         out_fp.write(f"REPORT DATE:\t{test_params["report_ts"]}\n")
         out_fp.write(f"SERVICE TYPE:\t{test_params["service_mode"]}\n")
         out_fp.write(f"LLM MODEL:\t{test_params["model_argv"]}\n")
-        out_fp.write(f" RAG BASE:\t{len(test_params["knowledge_files"])} documents\n")
+        out_fp.write(f"RAG BASE:\t{len(test_params["knowledge_files"])} documents\n")
         out_fp.writelines([f"\t - {file}\n" for file in test_params["knowledge_files"]])
         out_fp.write(f"QUESTION FILE:\t{test_params["q_file_name"]}\n")
         # out_fp.write(f"\nPROMPT:{test_params["prompt_text"]}")
@@ -172,6 +183,14 @@ def produce_court_claim(test_params: dict[str, Any], qa_chain) -> None:
 
     response: dict[str, Any] = qa_chain.invoke(in_doc.GetText())
 
+    # TODO: add header parameter to the command line
+    header_doc: Document = Document()
+    section: Section = header_doc.AddSection()
+    section.PageSetup.Margins.All = 40
+    header_doc_header = section.AddParagraph()
+    header_doc_header.AppendText(f"\nPROMPT:{test_params["prompt_text"]}")
+    header_doc.SaveToFile(rf"{test_params["output_file_path"]}\Prompt.docx", FileFormat.Docx2019)
+
     # Save LLM response to a doc file
     out_doc: Document = Document()
     section: Section = out_doc.AddSection()
@@ -181,7 +200,7 @@ def produce_court_claim(test_params: dict[str, Any], qa_chain) -> None:
     out_doc_header.AppendText(f"REPORT DATE:\t{test_params["report_ts"]}\n")
     out_doc_header.AppendText(f"SERVICE MODE:\t{test_params["service_mode"]}\n")
     out_doc_header.AppendText(f"LLM MODEL:\t{test_params["model_argv"]}\n")
-    out_doc_header.AppendText(f" RAG BASE:\t{len(test_params["knowledge_files"])} documents\n")
+    out_doc_header.AppendText(f"RAG BASE:\t{len(test_params["knowledge_files"])} documents\n")
     for file in test_params["knowledge_files"]:
         out_doc_header.AppendText(f"\t - {file}\n")
     out_doc_header.AppendText(f"QUESTION FILE:\t{test_params["q_file_name"]}\n")
