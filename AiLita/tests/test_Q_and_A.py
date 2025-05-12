@@ -184,12 +184,12 @@ def produce_court_claim(test_params: dict[str, Any], qa_chain) -> None:
     response: dict[str, Any] = qa_chain.invoke(in_doc.GetText())
 
     # TODO: add header parameter to the command line
-    header_doc: Document = Document()
-    section: Section = header_doc.AddSection()
-    section.PageSetup.Margins.All = 40
-    header_doc_header = section.AddParagraph()
-    header_doc_header.AppendText(f"\nPROMPT:{test_params["prompt_text"]}")
-    header_doc.SaveToFile(rf"{test_params["output_file_path"]}\Prompt.docx", FileFormat.Docx2019)
+    # header_doc: Document = Document()
+    # section: Section = header_doc.AddSection()
+    # section.PageSetup.Margins.All = 40
+    # header_doc_header = section.AddParagraph()
+    # header_doc_header.AppendText(f"\nPROMPT:{test_params["prompt_text"]}")
+    # header_doc.SaveToFile(rf"{test_params["output_file_path"]}\Prompt.docx", FileFormat.Docx2019)
 
     # Save LLM response to a doc file
     out_doc: Document = Document()
@@ -200,11 +200,11 @@ def produce_court_claim(test_params: dict[str, Any], qa_chain) -> None:
     out_doc_header.AppendText(f"REPORT DATE:\t{test_params["report_ts"]}\n")
     out_doc_header.AppendText(f"SERVICE MODE:\t{test_params["service_mode"]}\n")
     out_doc_header.AppendText(f"LLM MODEL:\t{test_params["model_argv"]}\n")
-    out_doc_header.AppendText(f"RAG BASE:\t{len(test_params["knowledge_files"])} documents\n")
+    out_doc_header.AppendText(f"KNOWLEDGE:\t{len(test_params["knowledge_files"])} documents\n")
     for file in test_params["knowledge_files"]:
         out_doc_header.AppendText(f"\t - {file}\n")
     out_doc_header.AppendText(f"QUESTION FILE:\t{test_params["q_file_name"]}\n")
-    # out_doc_header.AppendText(f"\nPROMPT:{test_params["prompt_text"]}")
+    out_doc_header.AppendText(f"\nPROMPT:{test_params["prompt_text"]}")
     out_doc_header.AppendText(f"\n{'#'*40}\n")
 
     # get the response

@@ -9,9 +9,7 @@ from pydantic import SecretStr
 
 from chromadb import PersistentClient
 from chromadb.utils.embedding_functions.ollama_embedding_function import OllamaEmbeddingFunction
-from chromadb.utils.embedding_functions.openai_embedding_function import OpenAIEmbeddingFunction
 
-from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain.text_splitter import NLTKTextSplitter
@@ -51,12 +49,20 @@ match sys.argv[1]:   # service mode
         )
     case "cloud":
         # use OpenAI's provided embedding function, as DeepSeek's one isn't available yet
-        embedding_func = OpenAIEmbeddingFunction(  #OpenAIEmbeddings
-            api_key=os.environ["OPENAI_API_KEY"],
-            model_name="text-embedding-3-large",
+        # from langchain_openai import OpenAIEmbeddings
+        # embedding_func = OpenAIEmbeddings(api_key=SecretStr(os.environ["OPENAI_API_KEY"]))
+
+        # from chromadb.utils.embedding_functions.openai_embedding_function import OpenAIEmbeddingFunction
+        # embedding_func = OpenAIEmbeddingFunction(
+        #     api_key=os.environ["OPENAI_API_KEY"],
+        #     model_name="text-embedding-3-large",
+        # )
+        embedding_func = OllamaEmbeddingFunction(
+            url="http://localhost:11434",   # Default Ollama server address
+            model_name="nomic-embed-text",  # Embedding model supported by Ollama
         )
     case _:
-        embedding_func = default_embedding_func
+        print("Unknown service model!")
 # ============================================================================================
 
 if not os.path.isdir(knowledge_db_path):
