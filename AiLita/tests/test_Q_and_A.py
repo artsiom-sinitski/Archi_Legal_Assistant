@@ -190,7 +190,9 @@ def produce_court_claim(test_params: dict[str, Any], qa_chain) -> None:
     # header_doc_header = section.AddParagraph()
     # header_doc_header.AppendText(f"\nPROMPT:{test_params["prompt_text"]}")
     # header_doc.SaveToFile(rf"{test_params["output_file_path"]}\Prompt.docx", FileFormat.Docx2019)
-
+    with open(rf"{test_params["output_file_path"]}\Prompt.txt", 'w', encoding="utf-8") as f_prompt_out:
+        f_prompt_out.write(f"\nPROMPT:{test_params["prompt_text"]}")
+    
     # Save LLM response to a doc file
     out_doc: Document = Document()
     section: Section = out_doc.AddSection()
@@ -204,7 +206,7 @@ def produce_court_claim(test_params: dict[str, Any], qa_chain) -> None:
     for file in test_params["knowledge_files"]:
         out_doc_header.AppendText(f"\t - {file}\n")
     out_doc_header.AppendText(f"QUESTION FILE:\t{test_params["q_file_name"]}\n")
-    out_doc_header.AppendText(f"\nPROMPT:{test_params["prompt_text"]}")
+    # out_doc_header.AppendText(f"\nPROMPT:{test_params["prompt_text"]}")
     out_doc_header.AppendText(f"\n{'#'*40}\n")
 
     # get the response
