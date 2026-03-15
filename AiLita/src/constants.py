@@ -15,7 +15,7 @@ class LLM_Model(object):
 # ----------------------------------------------------------------
 DEEPSEEK_R1: str = "deepseek-r1"
 
-GPT_54: str = "gpt-5-4"
+GPT_54: str = "gpt-5.4"
 
 GPT_5: str = "gpt-5"
 GPT_5_MINI: str = "gpt-5-mini"

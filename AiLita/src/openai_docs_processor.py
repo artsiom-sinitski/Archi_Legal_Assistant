@@ -9,7 +9,10 @@ import streamlit as st
 
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
-from langchain.text_splitter import NLTKTextSplitter
+
+# from langchain.text_splitter import NLTKTextSplitter
+from langchain_text_splitters import NLTKTextSplitter
+
 from langchain_core.documents import Document
 from langchain_community.document_loaders import (
     DirectoryLoader, UnstructuredWordDocumentLoader, TextLoader

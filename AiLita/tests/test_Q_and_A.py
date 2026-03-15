@@ -13,11 +13,10 @@ from spire.doc import (
 
 sys.path.append(rf"{Path(__file__).parent.parent}")
 
-from langchain.chains import RetrievalQA
-
+# from langchain.chains import RetrievalQA
+from langchain_classic.chains.retrieval_qa.base import RetrievalQA
 import AiLita.src.prompts as prompts
 import AiLita.src.constants as consts
-import AiLita.src.deepseek_docs_processor_local as dp
 
 # ====  Function Definitions ============================================================
 # =======================================================================================
@@ -25,7 +24,7 @@ import AiLita.src.deepseek_docs_processor_local as dp
 # Cmd line arguments examples:
 #  -> local deepseek-r1:32b produce_court_claim
 #  -> cloud deepseek-r1 produce_court_claim
-def setup() -> dict[str, Any]:
+def setup() -> (Any, dict[str, Any]):
     test_params: dict[str, Any] = dict()
     test_params["report_date"] = datetime.now().strftime('%Y%m%d')
     test_params["report_ts"] = datetime.now().strftime('%Y-%m-%d %H:%M')
@@ -45,6 +44,8 @@ def setup() -> dict[str, Any]:
         temperature: int = 0
         if "deepseek" in test_params["model_argv"]:
             from langchain_deepseek import ChatDeepSeek
+            import AiLita.src.deepseek_docs_processor_local as dp
+            # --------------------------------------------
             _apikey = "DEEPSEEK_API_KEY"
             if test_params["service_mode"] == "cloud":
                 llm = ChatDeepSeek(
@@ -62,6 +63,7 @@ def setup() -> dict[str, Any]:
         elif "gpt" in test_params["model_argv"]:
             from langchain_openai import ChatOpenAI
             import AiLita.src.openai_docs_processor as dp
+            # --------------------------------------------
             _apikey = "OPENAI_API_KEY"
             if test_params["service_mode"] == "cloud":
                 llm = ChatOpenAI(
@@ -102,7 +104,7 @@ def setup() -> dict[str, Any]:
         template=test_params["prompt_text"],
         input_variables=["context", "question"]
     )
-    return test_params
+    return dp, test_params
 
 
 
@@ -173,7 +175,7 @@ def answer_law_questions(test_params: dict[str, Any], qa_chain) -> None:
 # def end
 
 
-def produce_court_claim(test_params: dict[str, Any], qa_chain) -> None:
+def produce_court_claim_asWordDoc(test_params: dict[str, Any], qa_chain) -> None:
     run_time_start: float = time.perf_counter()
     ans_file_name: str = \
         rf"Answered_{test_params["model_name_no_params"].upper()}_{test_params["topic"]}_{test_params["report_date"]}.docx"
@@ -220,8 +222,69 @@ def produce_court_claim(test_params: dict[str, Any], qa_chain) -> None:
     out_doc.SaveToFile(rf"{test_params["output_file_path"]}\{ans_file_name}", FileFormat.Docx2019)
 # def end
 
-# ====  Function Definitions End =========================================================
 
+def produce_court_claim_asTxtDoc(test_params: dict[str, Any], qa_chain) -> None:
+    ans_file_name: str = \
+        f"Answered_{test_params["model_name_no_params"].upper()}_{test_params["topic"]}_{test_params["report_date"]}.txt"
+
+    run_time_start: float = time.perf_counter()
+
+    in_doc: Document = Document()
+    in_doc.LoadFromFile(rf"{test_params["input_file_path"]}\{test_params["q_file_name"]}")
+
+    question: str = in_doc.GetText()
+    # Dict 'response' has 3 keys -> {'query': str, 'result': str, 'source_documents': list}
+    response: dict[str, Any] = qa_chain.invoke(question)
+
+    # with open(rf"{test_params["output_file_path"]}\Prompt.txt", 'w', encoding="utf-8") as f_prompt_out:
+    #     f_prompt_out.write(f"\nPROMPT:{test_params["prompt_text"]}")
+
+    with open(fr"{test_params["output_file_path"]}\{ans_file_name}", 'w', encoding="utf-8") as out_fp:
+        out_fp.write(f"REPORT DATE  :\t{test_params["report_ts"]}\n")
+        out_fp.write(f"SERVICE TYPE :\t{test_params["service_mode"]}\n")
+        out_fp.write(f"LLM MODEL    :\t{test_params["model_argv"]}\n")
+        out_fp.write(f"RAG BASE     :\t{len(test_params["knowledge_files"])} documents\n")
+        out_fp.writelines([f"\t - {file}\n" for file in test_params["knowledge_files"]])
+        out_fp.write(f"QUESTION FILE:\t{test_params["q_file_name"]}\n")
+        # out_fp.write(f"\nPROMPT:{test_params["prompt_text"]}")
+        out_fp.write(f"\n{'#' * 70}\n")
+
+        q_tokens_num = prompts.calculate_tokens_num(test_params["llm_model"], question)
+        print(f"\n\t{q_tokens_num = }")
+
+        # input_tokens_total = prompt_tokens_num + q_tokens_num
+        # input_tokens_total_price = input_tokens_total * input_tokens_rate
+        # print(f"\t{round(input_tokens_total_price, 5) = }")
+
+        output_tokens_total = prompts.calculate_tokens_num(test_params["llm_model"], str(response))
+        print(f"\t{output_tokens_total = }")
+
+        # output_tokens_total_price = output_tokens_total * output_tokens_rate
+        # print(f"\t{round(output_tokens_total_price, 5) = }")
+
+        # answer_grand_total_price = input_tokens_total_price + output_tokens_total_price
+        # print(f"\t{round(answer_grand_total_price, 5) = }")
+
+        # grand_total_amount += answer_grand_total_price
+
+        # out_fp.writelines([f"Cost: ${round(answer_grand_total_price, 5)}\nTime: {elapsed_time}\n"])
+        out_fp.writelines([f"{'-' * 15}\n", f"{question}\n\n", "Answer:\n"])
+        try:
+            out_fp.write(response.get("result"))
+        except Exception as ex:
+            print(f"\t{'*' * 3} {ex}")
+        out_fp.write(f"\n\n{'-' * 99}\n")
+        # print(f"Processed Q{idx} (${round(answer_grand_total_price, 5)} | {elapsed_time}) -> {question}")
+
+        run_time_end: float = time.perf_counter() - run_time_start
+        elapsed_time = time.strftime("%H:%M:%S", time.gmtime(run_time_end))
+        out_fp.write(f"\n{'-' * 99}\n")
+        out_fp.write(f"\tTotal Run Time:\t{elapsed_time}\n")
+        # out_fp.write(f"\tGrand Total Cost:\t${round(grand_total_amount, 2)}")
+    # with end
+# def end
+
+# ====  Function Definitions End =========================================================
 
 def main() -> None:
     print(f"{'>' * 3} Input args", end=' -> ')
@@ -229,7 +292,8 @@ def main() -> None:
         print(arg, end=' | ')
     print('\n')
     # ---------------------------------------------------------------------
-    test_params: dict[str, Any] = setup()
+    # dp: Any, test_params: dict[str, Any] = setup()
+    dp, test_params = setup()
     test_params["user_action"] = sys.argv[3]
     # ---------------------------------------------------------------------
     start_time: float = 0.0
@@ -276,7 +340,8 @@ def main() -> None:
             case "answer_law_questions":
                 answer_law_questions(test_params, qa_chain)
             case "produce_court_claim":
-                produce_court_claim(test_params, qa_chain)
+                # produce_court_claim(test_params, qa_chain)
+                produce_court_claim_asTxtDoc(test_params, qa_chain)
             case _:
                 print("Invalid / missing user action!")
                 sys.exit(1)

@@ -12,7 +12,7 @@ from chromadb.utils.embedding_functions.ollama_embedding_function import OllamaE
 
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
-from langchain.text_splitter import NLTKTextSplitter
+from langchain_text_splitters import NLTKTextSplitter
 from langchain_community.document_loaders import (
     DirectoryLoader, TextLoader, UnstructuredWordDocumentLoader
 )

@@ -1,6 +1,10 @@
 import tiktoken    # BPE tokenizer for OpenAI models
 
-from langchain.prompts import (
+# from langchain.prompts import (
+#     PromptTemplate, FewShotPromptTemplate
+# )
+
+from langchain_core.prompts import (
     PromptTemplate, FewShotPromptTemplate
 )
 
