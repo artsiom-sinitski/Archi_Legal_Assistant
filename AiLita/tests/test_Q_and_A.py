@@ -117,10 +117,10 @@ def answer_law_questions(test_params: dict[str, Any], qa_chain) -> None:
         f"Answered_{test_params["model_name_no_params"].upper()}_{test_params["topic"]}_{test_params["report_date"]}.txt"
 
     with open(fr"{test_params["output_file_path"]}\{ans_file_name}", 'w', encoding="utf-8") as out_fp:
-        out_fp.write(f"REPORT DATE:\t{test_params["report_ts"]}\n")
-        out_fp.write(f"SERVICE TYPE:\t{test_params["service_mode"]}\n")
-        out_fp.write(f"LLM MODEL:\t{test_params["model_argv"]}\n")
-        out_fp.write(f"RAG BASE:\t{len(test_params["knowledge_files"])} documents\n")
+        out_fp.write(f"REPORT DATE  :\t{test_params["report_ts"]}\n")
+        out_fp.write(f"SERVICE TYPE :\t{test_params["service_mode"]}\n")
+        out_fp.write(f"LLM MODEL    :\t{test_params["model_argv"]}\n")
+        out_fp.write(f"RAG BASE     :\t{len(test_params["knowledge_files"])} documents\n")
         out_fp.writelines([f"\t - {file}\n" for file in test_params["knowledge_files"]])
         out_fp.write(f"QUESTION FILE:\t{test_params["q_file_name"]}\n")
         # out_fp.write(f"\nPROMPT:{test_params["prompt_text"]}")
@@ -199,10 +199,10 @@ def produce_court_claim(test_params: dict[str, Any], qa_chain) -> None:
     section.PageSetup.Margins.All = 40
 
     out_doc_header = section.AddParagraph()
-    out_doc_header.AppendText(f"REPORT DATE:\t{test_params["report_ts"]}\n")
-    out_doc_header.AppendText(f"SERVICE MODE:\t{test_params["service_mode"]}\n")
-    out_doc_header.AppendText(f"LLM MODEL:\t{test_params["model_argv"]}\n")
-    out_doc_header.AppendText(f"KNOWLEDGE:\t{len(test_params["knowledge_files"])} documents\n")
+    out_doc_header.AppendText(f"REPORT DATE  :\t{test_params["report_ts"]}\n")
+    out_doc_header.AppendText(f"SERVICE MODE :\t{test_params["service_mode"]}\n")
+    out_doc_header.AppendText(f"LLM MODEL    :\t{test_params["model_argv"]}\n")
+    out_doc_header.AppendText(f"KNOWLEDGE    :\t{len(test_params["knowledge_files"])} documents\n")
     for file in test_params["knowledge_files"]:
         out_doc_header.AppendText(f"\t - {file}\n")
     out_doc_header.AppendText(f"QUESTION FILE:\t{test_params["q_file_name"]}\n")
@@ -227,6 +227,7 @@ def main() -> None:
     print(f"{'>' * 3} Input args", end=' -> ')
     for arg in sys.argv[1:]:
         print(arg, end=' | ')
+    print('\n')
     # ---------------------------------------------------------------------
     test_params: dict[str, Any] = setup()
     test_params["user_action"] = sys.argv[3]
@@ -268,7 +269,8 @@ def main() -> None:
     prompt_tokens_num = prompts.calculate_tokens_num(test_params["llm_model"], test_params["prompt_template"])
     print(f"{prompt_tokens_num = }", end='\n\n')
 
-    print(f"{'*' * 3} Started processing task(s)::{test_params["user_action"]}")
+    print(f"{'*' * 3} Started processing task(s):")
+    print(f"{test_params["user_action"]}::{test_params["q_file_name"]}")
     try:
         match test_params["user_action"]:
             case "answer_law_questions":

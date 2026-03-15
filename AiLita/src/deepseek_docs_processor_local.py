@@ -78,8 +78,10 @@ if not os.path.isdir(knowledge_db_path):
     text_splitter = NLTKTextSplitter(separator="\n\n", language="russian")
     # chunks format --> Document(metadata={source: '...'}, page_content='...')
     chunks: list[Document] = loader.load_and_split(text_splitter)
-    print(f"{'*'*3} Loaded the knowledge documents {'*'*3}")
+    if len(chunks) <= 0:
+        raise Exception("No knowledge documents found!")
 
+    print(f"{'*'*3} Loaded the knowledge documents {'*'*3}")
     seen_docs = set()
     for source in chunks:
         source_meta = source.metadata['source'].split('\\')[-1]

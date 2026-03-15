@@ -12,7 +12,7 @@ from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import NLTKTextSplitter
 from langchain_core.documents import Document
 from langchain_community.document_loaders import (
-    TextLoader, DirectoryLoader
+    DirectoryLoader, UnstructuredWordDocumentLoader, TextLoader
 )
 from utilities import get_project_root
 from constants import WIN_ENCODING_RU
@@ -35,20 +35,20 @@ embedding_func = OpenAIEmbeddings(api_key=api_key)
 # ============================================================================================
 # ============================================================================================
 
-if os.path.isdir(knowledge_db_path):
-    vector_db = Chroma(persist_directory=knowledge_db_path, embedding_function=embedding_func)
-else:
+if not os.path.isdir(knowledge_db_path):
     import nltk
     nltk.download('punkt')
     nltk.download('punkt_tab')
 
     loader = DirectoryLoader(knowledge_docs_path,
-        glob="*.txt", loader_cls=TextLoader,
-        loader_kwargs={"encoding": WIN_ENCODING_RU},
+        glob="*.docx", loader_cls=UnstructuredWordDocumentLoader,  #loader_cls=TextLoader,
+        loader_kwargs={"autodetect_encoding": True},  #loader_kwargs={"encoding": WIN_ENCODING_RU},*/
         recursive=False, use_multithreading=True, show_progress=True
     )
     text_splitter = NLTKTextSplitter(separator="\n\n", language="russian")
     chunks: list[Document] = loader.load_and_split(text_splitter)
+    if len(chunks) <= 0:
+        raise Exception("No knowledge documents found!")
 
     print(f"{'*'*3} Loaded knowledge documents {'*'*3}")
     seen_docs = set()
@@ -67,7 +67,9 @@ else:
     )
     print(f"{'*' * 3} Created knowledge database (db) {'*'*3}")
 # if end
-print(f"{'*'*3} Retrieved data from the knowledge db {'*'*3}")
+
+vector_db = Chroma(persist_directory=knowledge_db_path, embedding_function=embedding_func)
+print(f"\n{'*'*3} Retrieved data from the knowledge db {'*'*3}")
 
 
 def get_vector_db_retriever():

@@ -15,6 +15,11 @@ class LLM_Model(object):
 # ----------------------------------------------------------------
 DEEPSEEK_R1: str = "deepseek-r1"
 
+GPT_54: str = "gpt-5-4"
+
+GPT_5: str = "gpt-5"
+GPT_5_MINI: str = "gpt-5-mini"
+
 GPT_4o3_MINI: str = "o3-mini"
 GPT_4o3_MINI_HIGH: str = "o3-mini-high"
 
@@ -26,6 +31,8 @@ GPT_4o_MINI: str = "gpt-4o-mini"
 
 AI_MODELS: dict[str, str] = {
     DEEPSEEK_R1: "deepseek-reasoner",
+    GPT_54: "gpt-5.4",
+    GPT_5: "gpt-5",
     GPT_4o3_MINI_HIGH: "o3-mini-high",
     GPT_4o3_MINI: "o3-mini",
     GPT_4o1_MINI: "o1-mini",
@@ -47,6 +54,21 @@ model_price_catalog: dict[str, dict[str, float]] = {
         INPUT_TOKENS_PRICE_1M: 0.55,
         CACHED_INPUT_TOKENS_PRICE_1M: 0.14,
         OUTPUT_TOKENS_PRICE_1M: 2.19,
+    },
+    GPT_54: {
+        INPUT_TOKENS_PRICE_1M: 2.50,
+        CACHED_INPUT_TOKENS_PRICE_1M: 0.25,
+        OUTPUT_TOKENS_PRICE_1M: 15,
+    },
+    GPT_5: {
+        INPUT_TOKENS_PRICE_1M: 1.25,
+        CACHED_INPUT_TOKENS_PRICE_1M: 0.125,
+        OUTPUT_TOKENS_PRICE_1M: 10,
+    },
+    GPT_5_MINI: {
+        INPUT_TOKENS_PRICE_1M: 0.25,
+        CACHED_INPUT_TOKENS_PRICE_1M: 0.025,
+        OUTPUT_TOKENS_PRICE_1M: 2,
     },
     GPT_4o3_MINI_HIGH: {
         INPUT_TOKENS_PRICE_1M: 1.1,
