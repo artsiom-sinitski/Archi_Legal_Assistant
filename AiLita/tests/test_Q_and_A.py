@@ -1,3 +1,7 @@
+# Command line params examples:
+# cloud gpt-6.1 produce_court_claim
+# cloud gpt-6.1 answer_law_questions
+# ---------------------------------------------------------
 import os
 import sys
 import json
@@ -41,7 +45,7 @@ def setup() -> (Any, dict[str, Any]):
     try:
         test_params["model_name_no_params"] = test_params["model_argv"].split(':')[0]   # remove the parameters number
         test_params["llm_model"] = consts.AI_MODELS[test_params["model_name_no_params"]]
-        temperature: int = 0
+        temperature: int = 1 #0
         if "deepseek" in test_params["model_argv"]:
             from langchain_deepseek import ChatDeepSeek
             import AiLita.src.deepseek_docs_processor_local as dp
@@ -295,6 +299,7 @@ def main() -> None:
     # dp: Any, test_params: dict[str, Any] = setup()
     dp, test_params = setup()
     test_params["user_action"] = sys.argv[3]
+    user_action: str = test_params["user_action"]
     # ---------------------------------------------------------------------
     start_time: float = 0.0
     end_time: float = 0.0
@@ -334,9 +339,9 @@ def main() -> None:
     print(f"{prompt_tokens_num = }", end='\n\n')
 
     print(f"{'*' * 3} Started processing task(s):")
-    print(f"{test_params["user_action"]}::{test_params["q_file_name"]}")
+    print(f"{user_action}::{test_params["q_file_name"]}")
     try:
-        match test_params["user_action"]:
+        match user_action:
             case "answer_law_questions":
                 answer_law_questions(test_params, qa_chain)
             case "produce_court_claim":

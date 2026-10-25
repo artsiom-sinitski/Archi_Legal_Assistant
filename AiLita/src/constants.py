@@ -15,6 +15,7 @@ class LLM_Model(object):
 # ----------------------------------------------------------------
 DEEPSEEK_R1: str = "deepseek-r1"
 
+GPT_61_SOL = "gpt-6.1"
 GPT_54: str = "gpt-5.4"
 
 GPT_5: str = "gpt-5"
@@ -31,6 +32,7 @@ GPT_4o_MINI: str = "gpt-4o-mini"
 
 AI_MODELS: dict[str, str] = {
     DEEPSEEK_R1: "deepseek-reasoner",
+    GPT_61_SOL: "gpt-6.1-sol",
     GPT_54: "gpt-5.4",
     GPT_5: "gpt-5",
     GPT_4o3_MINI_HIGH: "o3-mini-high",
@@ -54,6 +56,11 @@ model_price_catalog: dict[str, dict[str, float]] = {
         INPUT_TOKENS_PRICE_1M: 0.55,
         CACHED_INPUT_TOKENS_PRICE_1M: 0.14,
         OUTPUT_TOKENS_PRICE_1M: 2.19,
+    },
+    GPT_61_SOL: {
+        INPUT_TOKENS_PRICE_1M: 2.00,
+        CACHED_INPUT_TOKENS_PRICE_1M: 0.10,
+        OUTPUT_TOKENS_PRICE_1M: 10,
     },
     GPT_54: {
         INPUT_TOKENS_PRICE_1M: 2.50,
